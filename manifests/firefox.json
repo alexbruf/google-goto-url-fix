@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "Google Goto Url Fix",
+  "version": "1.0.0",
+  "description": "Turns Google's /goto result links back into ordinary, copyable links.",
+  "permissions": ["storage", "webRequest"],
+  "host_permissions": ["https://google.com/*", "https://www.google.com/*"],
+  "action": {
+    "default_title": "Google Goto Url Fix: off",
+    "default_icon": {"16": "icons/icon-16.png", "32": "icons/icon-32.png"}
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "96": "icons/icon-96.png",
+    "128": "icons/icon-128.png"
+  },
+  "background": {"scripts": ["background.js"]},
+  "content_scripts": [{
+    "matches": ["https://google.com/search*", "https://www.google.com/search*"],
+    "js": ["content.js"],
+    "run_at": "document_idle"
+  }],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "google-goto-url-fix@local.extension",
+      "strict_min_version": "121.0"
+    }
+  }
+}
