@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="500" viewBox="0 0 1000 500" role="img" aria-labelledby="title desc">
+  <title id="title">Install a temporary extension in Safari</title>
+  <desc id="desc">Four steps: open Safari Settings, select Developer, add a temporary extension, and choose the unzipped Safari folder.</desc>
+  <rect width="1000" height="500" rx="28" fill="#f4f8ff"/>
+  <circle cx="90" cy="82" r="40" fill="#1a73e8"/>
+  <path d="M90 52a30 30 0 1 0 0 60 30 30 0 0 0 0-60zm0 11a19 19 0 1 1 0 38 19 19 0 0 1 0-38z" fill="#fff"/>
+  <path d="M88 86l18-18-10 25-22 9z" fill="#fff"/>
+  <text x="150" y="75" font-family="system-ui, sans-serif" font-size="35" font-weight="750" fill="#172033">Install temporarily in Safari</text>
+  <text x="150" y="110" font-family="system-ui, sans-serif" font-size="20" fill="#58657a">macOS · Safari Developer settings</text>
+  <g font-family="system-ui, sans-serif">
+    <g transform="translate(55 165)">
+      <rect width="210" height="250" rx="20" fill="#fff" stroke="#d7e4f6"/>
+      <circle cx="35" cy="38" r="20" fill="#1a73e8"/><text x="29" y="46" font-size="22" font-weight="700" fill="#fff">1</text>
+      <text x="25" y="95" font-size="24" font-weight="700" fill="#172033">Open Settings</text>
+      <text x="25" y="132" font-size="18" fill="#58657a">Safari menu</text>
+      <text x="25" y="160" font-size="18" fill="#58657a">→ Settings</text>
+    </g>
+    <g transform="translate(285 165)">
+      <rect width="210" height="250" rx="20" fill="#fff" stroke="#d7e4f6"/>
+      <circle cx="35" cy="38" r="20" fill="#1a73e8"/><text x="29" y="46" font-size="22" font-weight="700" fill="#fff">2</text>
+      <text x="25" y="95" font-size="24" font-weight="700" fill="#172033">Developer</text>
+      <text x="25" y="132" font-size="18" fill="#58657a">Select the</text>
+      <text x="25" y="160" font-size="18" fill="#58657a">Developer tab</text>
+    </g>
+    <g transform="translate(515 165)">
+      <rect width="210" height="250" rx="20" fill="#fff" stroke="#d7e4f6"/>
+      <circle cx="35" cy="38" r="20" fill="#1a73e8"/><text x="29" y="46" font-size="22" font-weight="700" fill="#fff">3</text>
+      <text x="25" y="95" font-size="23" font-weight="700" fill="#172033">Add Temporary</text>
+      <text x="25" y="128" font-size="23" font-weight="700" fill="#172033">Extension…</text>
+      <text x="25" y="174" font-size="18" fill="#58657a">Approve the</text>
+      <text x="25" y="202" font-size="18" fill="#58657a">unsigned prompt</text>
+    </g>
+    <g transform="translate(745 165)">
+      <rect width="210" height="250" rx="20" fill="#fff" stroke="#d7e4f6"/>
+      <circle cx="35" cy="38" r="20" fill="#1a73e8"/><text x="29" y="46" font-size="22" font-weight="700" fill="#fff">4</text>
+      <text x="25" y="95" font-size="24" font-weight="700" fill="#172033">Choose folder</text>
+      <text x="25" y="132" font-size="18" fill="#58657a">Select the</text>
+      <text x="25" y="160" font-size="18" fill="#58657a">unzipped Safari</text>
+      <text x="25" y="188" font-size="18" fill="#58657a">extension folder</text>
+    </g>
+  </g>
+  <text x="500" y="462" text-anchor="middle" font-family="system-ui, sans-serif" font-size="17" fill="#6a7485">Temporary extensions are removed after 24 hours or when Safari quits.</text>
+</svg>

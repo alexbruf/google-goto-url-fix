@@ -12,6 +12,10 @@ install extensions downloaded from this project's official GitHub Releases page.
 5. Click **Load unpacked** and select the unzipped folder.
 6. Pin **Google Goto Url Fix** from Chrome's Extensions menu if desired.
 
+![Chrome Extensions page with Developer mode and Load unpacked highlighted](docs/images/chrome-load-unpacked-official.png)
+
+_Chrome interface screenshot from [Chrome for Developers](https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world), licensed under CC BY 4.0._
+
 Chrome may periodically display a developer-mode warning. Updates are manual:
 download the new release, replace the files in the same folder, then click the
 extension's **Reload** button on `chrome://extensions`.
@@ -24,6 +28,9 @@ extension's **Reload** button on `chrome://extensions`.
 4. Enable **Developer mode**.
 5. Click **Load unpacked** and select the unzipped folder.
 
+Edge's Extensions page uses the same Developer mode and **Load unpacked** flow
+shown in the Chrome screenshot above.
+
 Updates are manual until the Microsoft Edge Add-ons listing is available.
 
 ## Firefox
@@ -34,6 +41,10 @@ The release ZIP is intended for review and temporary testing. In Firefox:
 2. Open `about:debugging#/runtime/this-firefox`.
 3. Click **Load Temporary Add-on**.
 4. Select `manifest.json` inside the unzipped folder.
+
+![Firefox about debugging page with Load Temporary Add-on](docs/images/firefox-about-debugging-official.png)
+
+_Firefox interface screenshot from [Mozilla Firefox Source Docs](https://firefox-source-docs.mozilla.org/devtools-user/about_colon_debugging/). The exact styling may vary by Firefox version._
 
 Firefox removes temporary add-ons when it restarts. A persistent one-click install
 requires Mozilla's signed `.xpi`; that file will be added to Releases when signing
@@ -48,6 +59,10 @@ Safari 18.4 or later can load a temporary web-extension folder:
 3. Open Safari → Settings → Developer.
 4. Click **Add Temporary Extension…** and select the unzipped folder.
 5. Approve the unsigned-extension prompt and enable the extension.
+
+![Four steps for adding a temporary Safari extension](docs/images/safari-temporary-extension-guide.svg)
+
+_Diagram based on Apple's current [Running your Safari web extension](https://developer.apple.com/documentation/safariservices/running-your-safari-web-extension) instructions._
 
 Safari removes temporary extensions after 24 hours or when Safari quits. Normal
 distribution requires the signed Safari app or TestFlight build that will be linked
