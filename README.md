@@ -43,3 +43,5 @@ agent-browser session on completion.
 Store copy, privacy disclosures, reviewer notes, and the remaining account/signing
 checklist are in `store/`. Safari can be packaged through App Store Connect, or its
 ZIP can be converted into an Xcode project on macOS.
+
+See [RELEASE.md](RELEASE.md) for the automated CI/CD and version-tag release process.

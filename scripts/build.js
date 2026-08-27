@@ -6,6 +6,7 @@ const { execFileSync } = require("node:child_process");
 const root = path.join(__dirname, "..");
 const dist = path.join(root, "dist");
 const sharedFiles = ["background.js", "content.js"];
+const version = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8")).version;
 
 execFileSync(process.execPath, [path.join(__dirname, "generate-icons.js")]);
 fs.rmSync(dist, { recursive: true, force: true });
@@ -27,7 +28,7 @@ for (const [browser, manifest] of Object.entries(variants)) {
     fs.copyFileSync(path.join(root, "icons", icon), path.join(directory, "icons", icon));
   }
 
-  const archive = path.join(dist, `google-goto-url-fix-${browser}-1.0.0.zip`);
+  const archive = path.join(dist, `google-goto-url-fix-${browser}-${version}.zip`);
   execFileSync("jar", ["--create", "--no-manifest", "--file", archive, "-C", directory, "."]);
 }
 

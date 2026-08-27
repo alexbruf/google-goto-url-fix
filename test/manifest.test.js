@@ -5,6 +5,7 @@ const path = require("node:path");
 const vm = require("node:vm");
 
 const root = path.join(__dirname, "..");
+const packageVersion = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8")).version;
 
 test("manifest is a minimal MV3 extension scoped to Google search", () => {
   const manifest = JSON.parse(fs.readFileSync(path.join(root, "manifest.json"), "utf8"));
@@ -18,6 +19,7 @@ test("browser-specific manifests keep the same narrow scope", () => {
   for (const browser of ["firefox", "safari"]) {
     const manifest = JSON.parse(fs.readFileSync(path.join(root, "manifests", `${browser}.json`), "utf8"));
     assert.equal(manifest.manifest_version, 3);
+    assert.equal(manifest.version, packageVersion);
     assert.deepEqual(Array.from(manifest.permissions), ["storage", "webRequest"]);
     assert.ok(manifest.host_permissions.every((match) => match.includes("google.com")));
     assert.ok(!manifest.host_permissions.includes("<all_urls>"));
@@ -32,7 +34,7 @@ test("build produces valid PNG icons and every upload archive", () => {
     assert.equal(png.readUInt32BE(20), size);
   }
   for (const browser of ["chrome", "edge", "firefox", "safari"]) {
-    const archive = path.join(root, "dist", `google-goto-url-fix-${browser}-1.0.0.zip`);
+    const archive = path.join(root, "dist", `google-goto-url-fix-${browser}-${packageVersion}.zip`);
     assert.ok(fs.statSync(archive).size > 0, `${browser} archive is missing`);
   }
 });

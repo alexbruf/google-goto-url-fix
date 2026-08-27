@@ -5,6 +5,7 @@
   "description": "Cross-browser extension that restores copyable Google result links.",
   "scripts": {
     "build": "node scripts/build.js",
+    "version:set": "node scripts/set-version.js",
     "test": "node --test test/*.test.js",
     "test:browser": "sh scripts/test-browser-fixture.sh",
     "check": "npm run build && npm test"

@@ -5,7 +5,7 @@ install extensions downloaded from this project's official GitHub Releases page.
 
 ## Chrome
 
-1. Download `google-goto-url-fix-chrome-1.0.0.zip` from the latest GitHub Release.
+1. Download `google-goto-url-fix-chrome-<version>.zip` from the latest GitHub Release.
 2. Unzip it into a permanent folder. Do not delete that folder after installation.
 3. Open `chrome://extensions`.
 4. Enable **Developer mode** in the upper-right corner.
@@ -18,7 +18,7 @@ extension's **Reload** button on `chrome://extensions`.
 
 ## Microsoft Edge
 
-1. Download `google-goto-url-fix-edge-1.0.0.zip` from the latest GitHub Release.
+1. Download `google-goto-url-fix-edge-<version>.zip` from the latest GitHub Release.
 2. Unzip it into a permanent folder.
 3. Open `edge://extensions`.
 4. Enable **Developer mode**.
@@ -30,7 +30,7 @@ Updates are manual until the Microsoft Edge Add-ons listing is available.
 
 The release ZIP is intended for review and temporary testing. In Firefox:
 
-1. Download and unzip `google-goto-url-fix-firefox-1.0.0.zip`.
+1. Download and unzip `google-goto-url-fix-firefox-<version>.zip`.
 2. Open `about:debugging#/runtime/this-firefox`.
 3. Click **Load Temporary Add-on**.
 4. Select `manifest.json` inside the unzipped folder.
@@ -43,7 +43,7 @@ is complete.
 
 Safari 18.4 or later can load a temporary web-extension folder:
 
-1. Download and unzip `google-goto-url-fix-safari-1.0.0.zip`.
+1. Download and unzip `google-goto-url-fix-safari-<version>.zip`.
 2. In Safari, enable developer features if the **Developer** settings tab is hidden.
 3. Open Safari → Settings → Developer.
 4. Click **Add Temporary Extension…** and select the unzipped folder.

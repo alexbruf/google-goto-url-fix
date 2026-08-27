@@ -1,0 +1,58 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+
+      - name: Verify tag matches package version
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          node -e '
+            const version = require("./package.json").version;
+            const tag = process.env.RELEASE_TAG;
+            if (tag !== `v${version}`) {
+              console.error(`Tag ${tag} does not match package version ${version}`);
+              process.exit(1);
+            }
+          '
+
+      - name: Build and test every browser package
+        run: npm run check
+
+      - name: Generate SHA-256 checksums
+        run: sha256sum dist/*.zip > dist/SHA256SUMS.txt
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            dist/*.zip \
+            dist/SHA256SUMS.txt \
+            --verify-tag \
+            --title "Google Goto Url Fix $GITHUB_REF_NAME" \
+            --generate-notes
+
