@@ -81,7 +81,9 @@ and has no analytics or developer-operated service.
 
 ## Build from source
 
-Node.js 20 or newer and a JDK providing the `jar` command are required.
+Node.js 20 or newer is required. The build has no package-manager dependencies and
+writes standard ZIP archives directly, so Java and platform-specific ZIP tools are
+not required.
 
 ```sh
 npm run check

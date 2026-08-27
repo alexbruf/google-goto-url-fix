@@ -35,7 +35,10 @@ test("build produces valid PNG icons and every upload archive", () => {
   }
   for (const browser of ["chrome", "edge", "firefox", "safari"]) {
     const archive = path.join(root, "dist", `google-goto-url-fix-${browser}-${packageVersion}.zip`);
-    assert.ok(fs.statSync(archive).size > 0, `${browser} archive is missing`);
+    const zip = fs.readFileSync(archive);
+    assert.ok(zip.length > 0, `${browser} archive is missing`);
+    assert.equal(zip.subarray(0, 4).toString("hex"), "504b0304", `${browser} is not a ZIP`);
+    assert.ok(zip.includes(Buffer.from("manifest.json")), `${browser} manifest is missing`);
   }
 });
 
