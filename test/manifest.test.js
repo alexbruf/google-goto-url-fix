@@ -76,6 +76,7 @@ test("all JavaScript parses", () => {
 function loadBackground(fetchImpl) {
   let messageListener;
   let redirectListener;
+  let headersReceivedListener;
   const noOpEvent = { addListener() {} };
   const context = {
     URL,
@@ -94,7 +95,8 @@ function loadBackground(fetchImpl) {
         onMessage: { addListener(listener) { messageListener = listener; } }
       },
       webRequest: {
-        onBeforeRedirect: { addListener(listener) { redirectListener = listener; } }
+        onBeforeRedirect: { addListener(listener) { redirectListener = listener; } },
+        onHeadersReceived: { addListener(listener) { headersReceivedListener = listener; } }
       },
       tabs: { sendMessage: async () => {} }
     },
@@ -107,6 +109,9 @@ function loadBackground(fetchImpl) {
   );
   const send = (message) => new Promise((resolve) => messageListener(message, {}, resolve));
   send.redirect = (url, redirectUrl) => redirectListener({ url, redirectUrl });
+  send.headersReceived = (url, responseHeaders) => {
+    headersReceivedListener({ url, responseHeaders });
+  };
   return send;
 }
 
@@ -132,6 +137,19 @@ test("captures an opaque 3xx redirect without permission for its destination", a
   const result = await send({ type: "resolve-goto", url: source });
   assert.equal(result.ok, true);
   assert.equal(result.url, "https://developers.openai.com/api/docs");
+});
+
+test("captures Firefox's manual redirect from its response headers", async () => {
+  const source = "https://www.google.com/goto?url=firefox-key";
+  const send = loadBackground(async () => {
+    setImmediate(() => send.headersReceived(source, [
+      { name: "Location", value: "/search?q=resolved" }
+    ]));
+    return { status: 0, type: "opaqueredirect", headers: new Headers() };
+  });
+  const result = await send({ type: "resolve-goto", url: source });
+  assert.equal(result.ok, true);
+  assert.equal(result.url, "https://www.google.com/search?q=resolved");
 });
 
 test("will not turn the background worker into an arbitrary URL fetcher", async () => {

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Google Goto Url Fix",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Turns Google's /goto result links back into ordinary, copyable links.",
   "minimum_chrome_version": "121",
   "permissions": [

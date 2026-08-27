@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.2 — 2026-08-27
+
+- Fixes Firefox timing out while resolving Google `/goto` links by reading the
+  redirect destination when Firefox exposes the response headers.
+- Adds regression coverage for Firefox's manual-redirect behavior.
+
 ## 1.0.1 — 2026-08-27
 
 - Adds Mozilla-signed Firefox XPI releases for persistent self-distributed installs.

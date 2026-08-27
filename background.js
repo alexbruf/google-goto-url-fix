@@ -54,13 +54,34 @@ function isGoogleGoto(rawUrl) {
 }
 
 const pendingRedirects = new Map();
+const gotoRequestFilter = {
+  urls: ["https://google.com/goto*", "https://www.google.com/goto*"]
+};
+
+function finishPendingRedirect(url, redirectUrl) {
+  const pending = pendingRedirects.get(url);
+  if (pending) pending(new URL(redirectUrl, url).href);
+}
 
 api.webRequest.onBeforeRedirect.addListener(
   ({ url, redirectUrl }) => {
-    const pending = pendingRedirects.get(url);
-    if (pending) pending(redirectUrl);
+    finishPendingRedirect(url, redirectUrl);
   },
-  { urls: ["https://google.com/goto*", "https://www.google.com/goto*"] }
+  gotoRequestFilter
+);
+
+// Firefox does not emit onBeforeRedirect for a fetch using redirect: "manual".
+// Read Location while the response headers are available instead. This also
+// catches Google's occasional non-3xx response carrying a Location header.
+api.webRequest.onHeadersReceived.addListener(
+  ({ url, responseHeaders = [] }) => {
+    const location = responseHeaders.find(
+      ({ name }) => name.toLowerCase() === "location"
+    )?.value;
+    if (location) finishPendingRedirect(url, location);
+  },
+  gotoRequestFilter,
+  ["responseHeaders"]
 );
 
 async function resolveGoto(url) {
@@ -79,10 +100,10 @@ async function resolveGoto(url) {
       finish(undefined, new Error("Timed out waiting for Google's redirect"));
     }, 10000);
 
-    // Chrome deliberately hides a manual 3xx response from fetch as an
-    // opaque redirect, so onBeforeRedirect supplies its destination. If Google
-    // returns a non-3xx response (including the reported 402) with Location,
-    // the header remains readable and is handled by the fallback below.
+    // Chrome deliberately hides a manual 3xx response from fetch as an opaque
+    // redirect, so webRequest supplies its destination. Firefox exposes the
+    // Location header through onHeadersReceived instead of onBeforeRedirect.
+    // The fetch fallback handles readable non-3xx responses such as HTTP 402.
     pendingRedirects.set(url, (redirectUrl) => finish(redirectUrl));
     fetch(url, {
       method: "GET",
