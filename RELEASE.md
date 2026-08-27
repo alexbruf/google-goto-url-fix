@@ -47,5 +47,59 @@ The release workflow rejects a tag that does not exactly match the version in
 - Keeps unsigned ZIP artifacts from branch and pull-request builds for 14 days.
 - Generates SHA-256 checksums for tagged releases.
 
-Firefox signing, Safari signing/notarization, and browser-store submission remain
-publisher-authenticated steps. The generated ZIPs are the inputs for those systems.
+Firefox and Safari signing remain publisher-authenticated steps. Complete them on
+the tagged commit before attaching the installable artifacts to the release.
+
+## Sign Firefox for direct distribution
+
+Create JWT credentials on the AMO developer API keys page. Keep both values out of
+the repository and shell history, then expose them to `web-ext` through its standard
+environment variables:
+
+```sh
+export WEB_EXT_API_KEY="your AMO JWT issuer"
+export WEB_EXT_API_SECRET="your AMO JWT secret"
+npm install --global web-ext
+npm run build
+npm run sign:firefox
+```
+
+This uses Mozilla's `unlisted` channel and writes
+`dist/google-goto-url-fix-firefox-<version>.xpi`. The Gecko ID in
+`manifests/firefox.json` is permanent after the first submission.
+
+## Sign and notarize Safari for direct distribution
+
+This requires macOS, current Xcode, a Developer ID Application certificate, and an
+Apple Developer account signed into Xcode. The default command uses that Xcode
+account for notarization:
+
+```sh
+npm run build
+npm run sign:safari
+```
+
+For CI or a Mac without an account signed into Xcode, store App Store Connect team
+API-key credentials in the login keychain once (the issuer is the UUID shown for
+the API key in App Store Connect):
+
+```sh
+xcrun notarytool store-credentials google-goto-url-fix \
+  --key /path/to/AuthKey_KEYID.p8 \
+  --key-id KEYID \
+  --issuer ISSUER-UUID
+```
+
+Then select that profile explicitly:
+
+```sh
+npm run build
+NOTARYTOOL_PROFILE=google-goto-url-fix npm run sign:safari
+```
+
+The command automatically uses the first Developer ID Application identity in the
+keychain and writes `dist/google-goto-url-fix-safari-app-<version>.zip`. Override
+defaults with `APPLE_SIGNING_IDENTITY`, `APPLE_TEAM_ID`,
+`SAFARI_BUNDLE_IDENTIFIER`, `SAFARI_DEPLOYMENT_TARGET`, or `NOTARYTOOL_PROFILE`.
+For signature-only diagnostics, set `SKIP_NOTARIZATION=1`; never publish that
+unnotarized build because Gatekeeper rejects normal downloaded installation.

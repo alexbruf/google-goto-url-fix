@@ -12,7 +12,7 @@ Account ownership, signing, and public URLs must be supplied by the publisher.
 
 ## Chrome Web Store
 
-- Upload `dist/google-goto-url-fix-chrome-1.0.0.zip`.
+- Upload `dist/google-goto-url-fix-chrome-<version>.zip`.
 - Upload `icons/icon-128.png` as the store icon.
 - Upload `store/assets/store-screenshot-1280x800.png` as the required screenshot.
 - Upload `store/assets/promo-small-440x280.png` as the small promotional tile.
@@ -25,7 +25,8 @@ Account ownership, signing, and public URLs must be supplied by the publisher.
 
 - Confirm the permanent Gecko ID in `manifests/firefox.json`; do not change it
   after the first release.
-- Upload `dist/google-goto-url-fix-firefox-1.0.0.zip` to AMO for signing.
+- Run `npm run sign:firefox` with the AMO JWT environment variables described in
+  `RELEASE.md`, or upload `dist/google-goto-url-fix-firefox-<version>.zip` manually.
 - Paste the summary/category and data disclosure from `listing.md`.
 - Upload `store/assets/store-screenshot-1280x800.png` as the listing screenshot.
 - If Mozilla requests source, this repository is the complete readable source;
@@ -34,16 +35,25 @@ Account ownership, signing, and public URLs must be supplied by the publisher.
 
 ## Microsoft Edge Add-ons
 
-- Upload `dist/google-goto-url-fix-edge-1.0.0.zip`.
+- Upload `dist/google-goto-url-fix-edge-<version>.zip`.
 - Reuse the Chrome listing copy, privacy disclosures, screenshots, and icon.
 - Use the prepared files listed in `store/assets/README.md`.
 - Complete Microsoft's extension certification questionnaire and publisher account.
 
-## Safari / Apple App Store
+## Safari direct distribution
+
+- Sign into an Apple Developer account in Xcode, or configure the optional
+  `notarytool` keychain profile described in `RELEASE.md`.
+- Run `npm run sign:safari` on a Mac with the Developer ID Application certificate.
+- Install and launch `dist/google-goto-url-fix-safari-app-<version>.zip` on a second Mac
+  if available, then verify the extension can be enabled without developer mode.
+- Attach the signed XPI and signed/notarized Safari app archive to the GitHub Release.
+
+## Safari / Apple App Store (optional)
 
 Two official paths are available:
 
-1. Upload `dist/google-goto-url-fix-safari-1.0.0.zip` to the Safari Web
+1. Upload `dist/google-goto-url-fix-safari-<version>.zip` to the Safari Web
    Extension Packager in App Store Connect; or
 2. On a Mac with current Xcode, run:
 

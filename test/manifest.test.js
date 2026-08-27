@@ -26,6 +26,16 @@ test("browser-specific manifests keep the same narrow scope", () => {
   }
 });
 
+test("browser-specific release declarations satisfy signing toolchains", () => {
+  const firefox = JSON.parse(fs.readFileSync(path.join(root, "manifests", "firefox.json"), "utf8"));
+  assert.deepEqual(firefox.browser_specific_settings.gecko.data_collection_permissions, {
+    required: ["none"]
+  });
+
+  const safari = JSON.parse(fs.readFileSync(path.join(root, "manifests", "safari.json"), "utf8"));
+  assert.equal(safari.background.preferred_environment, undefined);
+});
+
 test("build produces valid PNG icons and every upload archive", () => {
   for (const size of [16, 32, 48, 64, 96, 128, 256, 512]) {
     const png = fs.readFileSync(path.join(root, "icons", `icon-${size}.png`));

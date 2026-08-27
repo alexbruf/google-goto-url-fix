@@ -35,7 +35,14 @@ Updates are manual until the Microsoft Edge Add-ons listing is available.
 
 ## Firefox
 
-The release ZIP is intended for review and temporary testing. In Firefox:
+For normal persistent installation:
+
+1. Download `google-goto-url-fix-firefox-<version>.xpi` from the latest GitHub Release.
+2. Open `about:addons`, click the gear menu, and choose **Install Add-on From File…**.
+3. Select the downloaded XPI and approve the requested permissions.
+
+The XPI is signed by Mozilla for self-distribution. It does not require a public
+Firefox Add-ons listing. For temporary testing of an unsigned source build:
 
 1. Download and unzip `google-goto-url-fix-firefox-<version>.zip`.
 2. Open `about:debugging#/runtime/this-firefox`.
@@ -46,13 +53,28 @@ The release ZIP is intended for review and temporary testing. In Firefox:
 
 _Firefox interface screenshot from [Mozilla Firefox Source Docs](https://firefox-source-docs.mozilla.org/devtools-user/about_colon_debugging/). The exact styling may vary by Firefox version._
 
-Firefox removes temporary add-ons when it restarts. A persistent one-click install
-requires Mozilla's signed `.xpi`; that file will be added to Releases when signing
-is complete.
+Firefox removes temporary add-ons when it restarts. Updates to a self-distributed
+XPI are manual unless an HTTPS update manifest is added later.
 
 ## Safari on macOS
 
-Safari 18.4 or later can load a temporary web-extension folder:
+For normal installation outside the Mac App Store:
+
+1. Download `google-goto-url-fix-safari-app-<version>.zip` from the latest GitHub Release.
+2. Unzip it and move **Google Goto Url Fix.app** to the Applications folder.
+3. Open the app once, then open Safari → Settings → Extensions.
+4. Enable **Google Goto Url Fix** and approve access to Google when prompted.
+
+Yes, the Safari download must be unzipped first: Safari installs the macOS `.app`
+inside the archive, not the ZIP itself. Do not use **Add Temporary Extension** for
+the `safari-app` release.
+
+The app and embedded Safari extension are signed with Apple Developer ID,
+notarized by Apple, and distributed directly. Updates are manual: replace the app
+in Applications with the newer release.
+
+For temporary testing of an unsigned source build, Safari 18.4 or later can load
+a web-extension folder:
 
 1. Download and unzip `google-goto-url-fix-safari-<version>.zip`.
 2. In Safari, enable developer features if the **Developer** settings tab is hidden.
@@ -64,9 +86,7 @@ Safari 18.4 or later can load a temporary web-extension folder:
 
 _Diagram based on Apple's current [Running your Safari web extension](https://developer.apple.com/documentation/safariservices/running-your-safari-web-extension) instructions._
 
-Safari removes temporary extensions after 24 hours or when Safari quits. Normal
-distribution requires the signed Safari app or TestFlight build that will be linked
-from Releases when available.
+Safari removes temporary extensions after 24 hours or when Safari quits.
 
 ## Use
 
