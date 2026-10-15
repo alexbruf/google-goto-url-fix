@@ -250,8 +250,8 @@ function isGoogleGoto(rawUrl) {
 const pendingRedirects = new Map();
 let gotoUrls = [];
 for(let googleHostname of googleHostnames){
-  gotoUrls.push("https://".googleHostname."/goto*");
-  gotoUrls.push("https://www.".googleHostname."/goto*");
+  gotoUrls.push("https://" + googleHostname + "/goto*");
+  gotoUrls.push("https://www." + googleHostname + "/goto*");
 }
 const gotoRequestFilter = {
   urls: gotoUrls
