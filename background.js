@@ -285,27 +285,19 @@ function destinationFromHtml(body) {
 }
 
 function decodeHtmlUrl(value) {
-  const textarea = globalThis.document?.createElement?.("textarea");
-  let decoded = value
+  return value
     .replace(/\\x([0-9a-fA-F]{2})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
-    .replace(/\\u([0-9a-fA-F]{4})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)));
-  if (textarea) {
-    textarea.innerHTML = decoded;
-    decoded = textarea.value;
-  } else {
-    decoded = decoded
-      .replace(/&#(x[0-9a-f]+|[0-9]+);/gi, (entity, number) => {
-        const value = number[0].toLowerCase() === "x" ? parseInt(number.slice(1), 16) : parseInt(number, 10);
-        return value > 0 && value <= 0x10ffff && !(value >= 0xd800 && value <= 0xdfff)
-          ? String.fromCodePoint(value) : entity;
-      })
-      .replace(/&amp;/g, "&")
-      .replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'")
-      .replace(/&lt;/g, "<")
-      .replace(/&gt;/g, ">");
-  }
-  return decoded;
+    .replace(/\\u([0-9a-fA-F]{4})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
+    .replace(/&#(x[0-9a-f]+|[0-9]+);/gi, (entity, number) => {
+      const code = number[0].toLowerCase() === "x" ? parseInt(number.slice(1), 16) : parseInt(number, 10);
+      return code > 0 && code <= 0x10ffff && !(code >= 0xd800 && code <= 0xdfff)
+        ? String.fromCodePoint(code) : entity;
+    })
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">");
 }
 
 function validateDestination(rawUrl, baseUrl) {
