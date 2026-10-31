@@ -5,7 +5,7 @@ const { execFileSync } = require("node:child_process");
 
 const root = path.join(__dirname, "..");
 const dist = path.join(root, "dist");
-const sharedFiles = ["background.js", "content.js", "options.html", "options.js"];
+const sharedFiles = ["background.js", "content.js", "options.html", "options.js", "welcome.html"];
 const version = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8")).version;
 
 function crc32(buffer) {

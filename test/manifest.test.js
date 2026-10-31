@@ -78,6 +78,8 @@ function loadBackground(fetchImpl, extensionOrigin = "chrome-extension://test") 
   let redirectListener;
   let beforeRequestListener;
   let headersReceivedListener;
+  let installedListener;
+  const openedTabs = [];
   const noOpEvent = { addListener() {} };
   const stored = { enabled: true };
   const action = {};
@@ -97,8 +99,8 @@ function loadBackground(fetchImpl, extensionOrigin = "chrome-extension://test") 
         onClicked: noOpEvent
       },
       runtime: {
-        getURL: () => `${extensionOrigin}/`,
-        onInstalled: noOpEvent,
+        getURL: (path = "") => `${extensionOrigin}/${path}`,
+        onInstalled: { addListener(listener) { installedListener = listener; } },
         onStartup: noOpEvent,
         onMessage: { addListener(listener) { messageListener = listener; } }
       },
@@ -107,7 +109,7 @@ function loadBackground(fetchImpl, extensionOrigin = "chrome-extension://test") 
         onBeforeRedirect: { addListener(listener) { redirectListener = listener; } },
         onHeadersReceived: { addListener(listener) { headersReceivedListener = listener; } }
       },
-      tabs: { sendMessage: async () => {} }
+      tabs: { sendMessage: async () => {}, create: async tab => { openedTabs.push(tab); } }
     },
     setTimeout,
     clearTimeout
@@ -134,8 +136,19 @@ function loadBackground(fetchImpl, extensionOrigin = "chrome-extension://test") 
   };
   send.stored = stored;
   send.action = action;
+  send.installed = details => installedListener(details);
+  send.openedTabs = openedTabs;
   return send;
 }
+
+test("opens private-browsing guidance only on first install", async () => {
+  const send = loadBackground(async () => {});
+  await send.installed({ reason: "install" });
+  assert.equal(send.openedTabs.length, 1);
+  assert.equal(send.openedTabs[0].url, "chrome-extension://test/welcome.html");
+  await send.installed({ reason: "update" });
+  assert.equal(send.openedTabs.length, 1);
+});
 
 test("uses a Location header even on Google's reported 402 response", async () => {
   const send = loadBackground(async () => ({

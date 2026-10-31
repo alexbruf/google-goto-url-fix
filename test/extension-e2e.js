@@ -78,7 +78,7 @@ async function main() {
   await new Promise(resolve => pageServer.listen(0, '127.0.0.1', resolve));
   const extension = path.join(tmp, 'extension');
   fs.mkdirSync(extension);
-  for (const file of ['background.js', 'content.js', 'options.html', 'options.js']) fs.copyFileSync(path.join(root, file), path.join(extension, file));
+  for (const file of ['background.js', 'content.js', 'options.html', 'options.js', 'welcome.html']) fs.copyFileSync(path.join(root, file), path.join(extension, file));
   fs.cpSync(path.join(root, 'icons'), path.join(extension, 'icons'), { recursive: true });
   const manifest = JSON.parse(fs.readFileSync(path.join(root, 'manifest.json')));
   manifest.content_scripts[0].matches.push('http://127.0.0.1/search*');

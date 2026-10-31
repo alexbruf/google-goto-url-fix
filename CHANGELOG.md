@@ -10,6 +10,7 @@
 - Pauses lookups for five minutes on explicit verification or rate limits, leaves
   unresolved links unchanged, and displays loading and error badge states.
 - Adds regression and controlled Chromium end-to-end tests for resolution and challenges.
+- Shows optional private-browsing setup instructions on first installation.
 
 ## 1.0.2 — 2026-08-27
 

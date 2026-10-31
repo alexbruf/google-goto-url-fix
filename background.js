@@ -37,12 +37,19 @@ async function reportLookup(error) {
   await updateAction(await isEnabled());
 }
 
-api.runtime.onInstalled.addListener(async () => {
+api.runtime.onInstalled.addListener(async (details) => {
   const stored = await api.storage.local.get(ENABLED_KEY);
   if (typeof stored[ENABLED_KEY] !== "boolean") {
     await api.storage.local.set({ [ENABLED_KEY]: false });
   }
   await updateAction(stored[ENABLED_KEY] === true);
+  if (details.reason === "install") {
+    try {
+      await api.tabs.create({ url: api.runtime.getURL("welcome.html") });
+    } catch {
+      // The extension remains usable if the browser cannot open a welcome tab.
+    }
+  }
 });
 
 api.runtime.onStartup.addListener(async () => updateAction(await isEnabled()));
