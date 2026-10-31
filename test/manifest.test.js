@@ -20,7 +20,7 @@ test("browser-specific manifests keep the same narrow scope", () => {
     const manifest = JSON.parse(fs.readFileSync(path.join(root, "manifests", `${browser}.json`), "utf8"));
     assert.equal(manifest.manifest_version, 3);
     assert.equal(manifest.version, packageVersion);
-    assert.deepEqual(Array.from(manifest.permissions), ["storage", "webRequest"]);
+    assert.deepEqual(Array.from(manifest.permissions), browser === "safari" ? ["storage"] : ["storage", "webRequest"]);
     assert.ok(manifest.host_permissions.includes("https://www.google.co.uk/*"));
     assert.ok(!manifest.host_permissions.includes("<all_urls>"));
   }
@@ -75,7 +75,7 @@ test("all JavaScript parses", () => {
   }
 });
 
-function loadBackground(fetchImpl, extensionOrigin = "chrome-extension://test", browserName, background = { service_worker: "background.js" }, userAgent = "") {
+function loadBackground(fetchImpl, extensionOrigin = "chrome-extension://test", browserName, background = { service_worker: "background.js" }, userAgent = "", permissions) {
   let messageListener;
   let redirectListener;
   let beforeRequestListener;
@@ -103,7 +103,7 @@ function loadBackground(fetchImpl, extensionOrigin = "chrome-extension://test", 
       },
       runtime: {
         getURL: (path = "") => `${extensionOrigin}/${path}`,
-        getManifest: () => ({ background }),
+        getManifest: () => ({ background, permissions }),
         ...(browserName ? { getBrowserInfo: async () => ({ name: browserName }) } : {}),
         onInstalled: { addListener(listener) { installedListener = listener; } },
         onStartup: noOpEvent,
@@ -557,4 +557,21 @@ test("will not turn the background worker into an arbitrary URL fetcher", async 
   });
   assert.equal(result.ok, false);
   assert.equal(fetched, false);
+});
+
+
+test("Safari resolves readable ping responses without webRequest listeners", async () => {
+  const send = loadBackground(async () => ({status: 200, type: "basic", headers: {get: () => null}, text: async () => "<meta content=\"0;url=https://example.com/path\">"}), "safari-web-extension://test", undefined, {scripts: ["background.js"]}, "Safari/605.1.15", ["storage"]);
+  const result = await send({type: "resolve-goto", url: "https://www.google.com/goto?url=x", pingUrl: "https://www.google.com/url?url=x"});
+  assert.equal(result.ok, true);
+  assert.equal(result.url, "https://example.com/path");
+});
+
+test("Safari fails opaque redirects promptly without following destination sites", async () => {
+  let calls = 0;
+  const send = loadBackground(async () => { calls++; return {status: 0, type: "opaqueredirect", headers: {get: () => null}}; }, "safari-web-extension://test", undefined, {scripts: ["background.js"]}, "Safari/605.1.15", ["storage"]);
+  const result = await send({type: "resolve-goto", url: "https://www.google.com/goto?url=x"});
+  assert.equal(result.ok, false);
+  assert.match(result.error, /could not read/);
+  assert.equal(calls, 1);
 });
