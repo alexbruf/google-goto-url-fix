@@ -78,11 +78,15 @@ function loadBackground(fetchImpl) {
   let redirectListener;
   let headersReceivedListener;
   const noOpEvent = { addListener() {} };
+  const stored = { enabled: false };
   const context = {
     URL,
     fetch: fetchImpl,
     chrome: {
-      storage: { local: { get: async () => ({ enabled: false }), set: async () => {} } },
+      storage: { local: {
+        get: async () => ({ ...stored }),
+        set: async (values) => { Object.assign(stored, values); }
+      } },
       action: {
         setBadgeText: async () => {},
         setBadgeBackgroundColor: async () => {},
@@ -112,6 +116,7 @@ function loadBackground(fetchImpl) {
   send.headersReceived = (url, responseHeaders) => {
     headersReceivedListener({ url, responseHeaders });
   };
+  send.stored = stored;
   return send;
 }
 
@@ -151,6 +156,41 @@ test("captures Firefox's manual redirect from its response headers", async () =>
   assert.equal(result.ok, true);
   assert.equal(result.url, "https://www.google.com/search?q=resolved");
 });
+
+test("never returns Google's verification page and pauses further lookups", async () => {
+  const source = "https://www.google.com/goto?url=flagged";
+  let fetches = 0;
+  const send = loadBackground(async () => {
+    fetches += 1;
+    setImmediate(() => send.redirect(source, "https://www.google.com/sorry/index?continue=x"));
+    return { status: 0, type: "opaqueredirect", headers: new Headers() };
+  });
+  const flagged = await send({ type: "resolve-goto", url: source });
+  assert.equal(flagged.ok, false);
+  assert.equal(fetches, 1);
+
+  const paused = await send({ type: "resolve-goto", url: "https://www.google.com/goto?url=next" });
+  assert.equal(paused.ok, false);
+  assert.equal(fetches, 1, "no request is sent while paused");
+
+  send.stored.pausedUntil = Date.now() - 1;
+  await send({ type: "resolve-goto", url: source });
+  assert.equal(fetches, 2, "lookups resume after the pause");
+});
+
+for (const status of [200, 429]) {
+  test(`pauses lookups on a ${status} response with no destination`, async () => {
+    let fetches = 0;
+    const send = loadBackground(async () => {
+      fetches += 1;
+      return { status, type: "basic", headers: new Headers() };
+    });
+    const result = await send({ type: "resolve-goto", url: "https://www.google.com/goto?url=a" });
+    assert.equal(result.ok, false);
+    await send({ type: "resolve-goto", url: "https://www.google.com/goto?url=b" });
+    assert.equal(fetches, 1);
+  });
+}
 
 test("will not turn the background worker into an arbitrary URL fetcher", async () => {
   let fetched = false;

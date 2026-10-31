@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Resolves only the first three result headings automatically, and other links
+  on hover, keyboard focus, touch, or right-click, to avoid Google flagging users.
+- Never rewrites a link to Google's `/sorry` verification page.
+- Pauses all lookups for five minutes when Google asks for verification or
+  returns a response with no redirect.
+
 ## 1.0.2 — 2026-08-27
 
 - Fixes Firefox timing out while resolving Google `/goto` links by reading the

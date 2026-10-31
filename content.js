@@ -1,5 +1,7 @@
 (() => {
   const api = globalThis.browser ?? globalThis.chrome;
+  const BACKGROUND_LIMIT = 3;
+  const HOVER_DELAY_MS = 150;
   const originals = new Map();
   const cache = new Map();
   const queued = new Set();
@@ -7,6 +9,8 @@
   let enabled = false;
   let active = 0;
   let observer;
+  let backgroundLeft = 0;
+  let hoverTimer;
 
   function isGotoLink(anchor) {
     try {
@@ -34,9 +38,41 @@
     drain();
   }
 
+  // Requesting every result gets users flagged by Google, so only the first few
+  // result headings resolve unprompted. Everything else waits for hover or focus.
+  function enqueueInBackground(anchor) {
+    if (!enabled || !isGotoLink(anchor)) return;
+    const known = cache.has(anchor.href) || queued.has(anchor.href);
+    if (!known) {
+      if (backgroundLeft === 0 || !anchor.querySelector("h3")) return;
+      backgroundLeft -= 1;
+    }
+    enqueue(anchor);
+  }
+
   function scan(root = document) {
-    if (root instanceof HTMLAnchorElement) enqueue(root);
-    root.querySelectorAll?.("a[href]").forEach(enqueue);
+    if (root instanceof HTMLAnchorElement) enqueueInBackground(root);
+    root.querySelectorAll?.("a[href]").forEach(enqueueInBackground);
+  }
+
+  function linkFromEvent(event) {
+    const anchor = event.target.closest?.("a[href]");
+    return anchor && isGotoLink(anchor) ? anchor : null;
+  }
+
+  function resolveSoon(event) {
+    clearTimeout(hoverTimer);
+    const anchor = linkFromEvent(event);
+    if (anchor) hoverTimer = setTimeout(() => enqueue(anchor), HOVER_DELAY_MS);
+  }
+
+  function cancelResolve() {
+    clearTimeout(hoverTimer);
+  }
+
+  function resolveNow(event) {
+    const anchor = linkFromEvent(event);
+    if (anchor) enqueue(anchor);
   }
 
   function drain() {
@@ -65,13 +101,19 @@
   function start() {
     if (enabled) return;
     enabled = true;
+    backgroundLeft = BACKGROUND_LIMIT;
     scan();
+    document.addEventListener("pointerover", resolveSoon);
+    document.addEventListener("pointerout", cancelResolve);
+    document.addEventListener("focusin", resolveSoon);
+    document.addEventListener("touchstart", resolveNow, { passive: true });
+    document.addEventListener("contextmenu", resolveNow);
     observer = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
         mutation.addedNodes.forEach((node) => {
           if (node.nodeType === Node.ELEMENT_NODE) scan(node);
         });
-        if (mutation.type === "attributes") enqueue(mutation.target);
+        if (mutation.type === "attributes") enqueueInBackground(mutation.target);
       }
     });
     observer.observe(document.documentElement, {
@@ -85,6 +127,12 @@
 
   function stop() {
     enabled = false;
+    cancelResolve();
+    document.removeEventListener("pointerover", resolveSoon);
+    document.removeEventListener("pointerout", cancelResolve);
+    document.removeEventListener("focusin", resolveSoon);
+    document.removeEventListener("touchstart", resolveNow);
+    document.removeEventListener("contextmenu", resolveNow);
     observer?.disconnect();
     observer = undefined;
     queue.length = 0;

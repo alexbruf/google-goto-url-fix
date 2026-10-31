@@ -1,4 +1,6 @@
 const ENABLED_KEY = "enabled";
+const PAUSED_UNTIL_KEY = "pausedUntil";
+const PAUSE_MS = 5 * 60 * 1000;
 const api = globalThis.browser ?? globalThis.chrome;
 
 async function isEnabled() {
@@ -53,6 +55,22 @@ function isGoogleGoto(rawUrl) {
   }
 }
 
+function isVerificationPage(rawUrl) {
+  const url = new URL(rawUrl);
+  return /(^|\.)google\.[a-z.]+$/.test(url.hostname) && url.pathname.startsWith("/sorry");
+}
+
+// Stored rather than held in memory because the service worker can be stopped
+// at any time, and a restart must not resume requests while Google is flagging us.
+async function pauseLookups() {
+  await api.storage.local.set({ [PAUSED_UNTIL_KEY]: Date.now() + PAUSE_MS });
+}
+
+async function lookupsPaused() {
+  const stored = await api.storage.local.get(PAUSED_UNTIL_KEY);
+  return Date.now() < (stored[PAUSED_UNTIL_KEY] ?? 0);
+}
+
 const pendingRedirects = new Map();
 const gotoRequestFilter = {
   urls: ["https://google.com/goto*", "https://www.google.com/goto*"]
@@ -86,7 +104,17 @@ api.webRequest.onHeadersReceived.addListener(
 
 async function resolveGoto(url) {
   if (!isGoogleGoto(url)) throw new Error("Unsupported redirect URL");
+  if (await lookupsPaused()) throw new Error("Paused after Google asked for verification");
 
+  const destination = await requestRedirect(url);
+  if (isVerificationPage(destination)) {
+    await pauseLookups();
+    throw new Error("Google asked for verification");
+  }
+  return destination;
+}
+
+function requestRedirect(url) {
   return new Promise((resolve, reject) => {
     let settled = false;
     const finish = (value, error) => {
@@ -114,7 +142,9 @@ async function resolveGoto(url) {
       const location = response.headers.get("location");
       if (location) finish(new URL(location, url).href);
       else if (response.type !== "opaqueredirect") {
-        finish(undefined, new Error(`Google did not return a redirect (${response.status})`));
+        // A readable response with no destination is a block or interstitial.
+        const error = new Error(`Google did not return a redirect (${response.status})`);
+        pauseLookups().finally(() => finish(undefined, error));
       }
     }).catch((error) => finish(undefined, error));
   });

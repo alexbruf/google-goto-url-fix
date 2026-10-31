@@ -24,6 +24,10 @@ Click the toolbar button to switch rewriting on or off. A blue **ON** badge mean
 it is active. The setting persists across browser restarts. Turning it off restores
 the original Google links already changed on the current page.
 
+The first three result headings are resolved automatically. Other links are resolved
+when you hover, focus, touch, or right-click them. Sending every link to Google can
+trigger its verification page, so all lookups pause for five minutes if that happens.
+
 The extension runs only on `google.com/search` pages and only sends Google `/goto`
 URLs back to Google to obtain their redirect target. Chrome's `webRequest` API is
 used only to read that redirect event; the extension does not request access to
