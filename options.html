@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Google Goto Url Fix settings</title>
+  <style>
+    body { font: 16px system-ui, sans-serif; max-width: 40rem; margin: 3rem auto; padding: 0 1rem; color: #202124; }
+    label { display: flex; gap: .6rem; align-items: baseline; font-weight: 600; }
+    p { line-height: 1.5; color: #4b5563; }
+  </style>
+</head>
+<body>
+  <h1>Google Goto Url Fix</h1>
+  <label><input type="checkbox" id="prefetch"> Prefetch nearby search results</label>
+  <p>Resolve a few nearby links after scrolling pauses, so they may be ready before you hover. Turn this off to resolve links only when you interact with them.</p>
+  <p id="status" role="status"></p>
+  <script src="options.js"></script>
+</body>
+</html>
