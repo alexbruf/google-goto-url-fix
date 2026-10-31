@@ -13,6 +13,7 @@
 - Adds regression and controlled Chromium end-to-end tests for resolution and challenges.
 - Shows optional private-browsing setup instructions on first installation.
 - Tailors private-window instructions for Firefox and explains that slow links may need another hover.
+- Provides Safari-specific first-install and Private Browsing guidance on macOS.
 
 ## 1.0.2 — 2026-08-27
 

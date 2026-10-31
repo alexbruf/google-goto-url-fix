@@ -45,7 +45,14 @@ api.runtime.onInstalled.addListener(async (details) => {
   await updateAction(stored[ENABLED_KEY] === true);
   if (details.reason === "install") {
     let welcomePage = "welcome.html";
-    if (typeof api.runtime.getBrowserInfo === "function") {
+    // The Safari package declares both background forms; Chrome declares only
+    // a service worker and Firefox declares only background scripts.
+    const background = api.runtime.getManifest().background;
+    const agent = globalThis.navigator?.userAgent ?? "";
+    const safariAgent = /Safari\//.test(agent) && !/(?:Chrome|Chromium|CriOS|Edg|OPR|FxiOS)\//.test(agent);
+    if ((background?.service_worker && Array.isArray(background.scripts)) || safariAgent) {
+      welcomePage = "welcome-safari.html";
+    } else if (typeof api.runtime.getBrowserInfo === "function") {
       try {
         const info = await api.runtime.getBrowserInfo();
         if (info.name?.toLowerCase() === "firefox") welcomePage = "welcome-firefox.html";

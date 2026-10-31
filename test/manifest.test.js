@@ -75,7 +75,7 @@ test("all JavaScript parses", () => {
   }
 });
 
-function loadBackground(fetchImpl, extensionOrigin = "chrome-extension://test", browserName) {
+function loadBackground(fetchImpl, extensionOrigin = "chrome-extension://test", browserName, background = { service_worker: "background.js" }, userAgent = "") {
   let messageListener;
   let redirectListener;
   let beforeRequestListener;
@@ -88,6 +88,7 @@ function loadBackground(fetchImpl, extensionOrigin = "chrome-extension://test", 
   const context = {
     URL,
     AbortController,
+    navigator: { userAgent },
     fetch: fetchImpl,
     chrome: {
       storage: { local: {
@@ -102,6 +103,7 @@ function loadBackground(fetchImpl, extensionOrigin = "chrome-extension://test", 
       },
       runtime: {
         getURL: (path = "") => `${extensionOrigin}/${path}`,
+        getManifest: () => ({ background }),
         ...(browserName ? { getBrowserInfo: async () => ({ name: browserName }) } : {}),
         onInstalled: { addListener(listener) { installedListener = listener; } },
         onStartup: noOpEvent,
@@ -154,9 +156,26 @@ test("opens private-browsing guidance only on first install", async () => {
 });
 
 test("first install opens Firefox-specific private-window guidance in Firefox", async () => {
-  const send = loadBackground(async () => {}, "moz-extension://test", "Firefox");
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, "manifests", "firefox.json"), "utf8"));
+  const send = loadBackground(async () => {}, "moz-extension://test", "Firefox", manifest.background);
   await send.installed({ reason: "install" });
   assert.equal(send.openedTabs[0].url, "moz-extension://test/welcome-firefox.html");
+  await send.installed({ reason: "update" });
+  assert.equal(send.openedTabs.length, 1);
+});
+
+test("Safari user agent selects Safari guidance if only one background form is exposed", async () => {
+  const send = loadBackground(async () => {}, "safari-web-extension://test", undefined,
+    { scripts: ["background.js"] }, "Mozilla/5.0 Version/18.4 Safari/605.1.15");
+  await send.installed({ reason: "install" });
+  assert.equal(send.openedTabs[0].url, "safari-web-extension://test/welcome-safari.html");
+});
+
+test("first install opens Safari-specific guidance for the Safari package", async () => {
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, "manifests", "safari.json"), "utf8"));
+  const send = loadBackground(async () => {}, "safari-web-extension://test", undefined, manifest.background);
+  await send.installed({ reason: "install" });
+  assert.equal(send.openedTabs[0].url, "safari-web-extension://test/welcome-safari.html");
   await send.installed({ reason: "update" });
   assert.equal(send.openedTabs.length, 1);
 });
