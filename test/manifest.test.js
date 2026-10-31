@@ -75,7 +75,7 @@ test("all JavaScript parses", () => {
   }
 });
 
-function loadBackground(fetchImpl, extensionOrigin = "chrome-extension://test") {
+function loadBackground(fetchImpl, extensionOrigin = "chrome-extension://test", browserName) {
   let messageListener;
   let redirectListener;
   let beforeRequestListener;
@@ -102,6 +102,7 @@ function loadBackground(fetchImpl, extensionOrigin = "chrome-extension://test") 
       },
       runtime: {
         getURL: (path = "") => `${extensionOrigin}/${path}`,
+        ...(browserName ? { getBrowserInfo: async () => ({ name: browserName }) } : {}),
         onInstalled: { addListener(listener) { installedListener = listener; } },
         onStartup: noOpEvent,
         onMessage: { addListener(listener) { messageListener = listener; } }
@@ -148,6 +149,14 @@ test("opens private-browsing guidance only on first install", async () => {
   await send.installed({ reason: "install" });
   assert.equal(send.openedTabs.length, 1);
   assert.equal(send.openedTabs[0].url, "chrome-extension://test/welcome.html");
+  await send.installed({ reason: "update" });
+  assert.equal(send.openedTabs.length, 1);
+});
+
+test("first install opens Firefox-specific private-window guidance in Firefox", async () => {
+  const send = loadBackground(async () => {}, "moz-extension://test", "Firefox");
+  await send.installed({ reason: "install" });
+  assert.equal(send.openedTabs[0].url, "moz-extension://test/welcome-firefox.html");
   await send.installed({ reason: "update" });
   assert.equal(send.openedTabs.length, 1);
 });

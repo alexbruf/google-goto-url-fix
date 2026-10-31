@@ -44,8 +44,17 @@ api.runtime.onInstalled.addListener(async (details) => {
   }
   await updateAction(stored[ENABLED_KEY] === true);
   if (details.reason === "install") {
+    let welcomePage = "welcome.html";
+    if (typeof api.runtime.getBrowserInfo === "function") {
+      try {
+        const info = await api.runtime.getBrowserInfo();
+        if (info.name?.toLowerCase() === "firefox") welcomePage = "welcome-firefox.html";
+      } catch {
+        // Use the general welcome page if browser identification is unavailable.
+      }
+    }
     try {
-      await api.tabs.create({ url: api.runtime.getURL("welcome.html") });
+      await api.tabs.create({ url: api.runtime.getURL(welcomePage) });
     } catch {
       // The extension remains usable if the browser cannot open a welcome tab.
     }

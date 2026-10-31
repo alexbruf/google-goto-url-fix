@@ -78,7 +78,7 @@ async function main() {
   await new Promise(resolve => pageServer.listen(0, '127.0.0.1', resolve));
   const extension = path.join(tmp, 'extension');
   fs.mkdirSync(extension);
-  for (const file of ['background.js', 'content.js', 'options.html', 'options.js', 'welcome.html']) fs.copyFileSync(path.join(root, file), path.join(extension, file));
+  for (const file of ['background.js', 'content.js', 'options.html', 'options.js', 'welcome.html', 'welcome-firefox.html']) fs.copyFileSync(path.join(root, file), path.join(extension, file));
   fs.cpSync(path.join(root, 'icons'), path.join(extension, 'icons'), { recursive: true });
   fs.mkdirSync(path.join(extension, 'assets'));
   for (const file of ['chrome-extension-list.png', 'chrome-incognito-setting.png']) fs.copyFileSync(path.join(root, 'assets', file), path.join(extension, 'assets', file));
