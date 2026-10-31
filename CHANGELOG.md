@@ -7,6 +7,7 @@
 - Never rewrites a link to Google's `/sorry` verification page.
 - Pauses all lookups for five minutes when Google asks for verification or
   returns a response with no redirect.
+- Shows a red `!` badge, with the reason in the tooltip, when links can't be resolved.
 
 ## 1.0.2 — 2026-08-27
 

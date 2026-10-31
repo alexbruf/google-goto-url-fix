@@ -1,6 +1,8 @@
 const ENABLED_KEY = "enabled";
 const PAUSED_UNTIL_KEY = "pausedUntil";
 const PAUSE_MS = 5 * 60 * 1000;
+const LOOKUP_ERROR_KEY = "lookupError";
+const PAUSED_MESSAGE = "Paused after Google asked for verification";
 const api = globalThis.browser ?? globalThis.chrome;
 
 async function isEnabled() {
@@ -10,14 +12,25 @@ async function isEnabled() {
 
 async function updateAction(enabled, tabId) {
   const target = Number.isInteger(tabId) ? { tabId } : {};
+  const stored = await api.storage.local.get(LOOKUP_ERROR_KEY);
+  const lookupError = enabled ? stored[LOOKUP_ERROR_KEY] : undefined;
+  let title = `Google Goto Url Fix: ${enabled ? "on" : "off"}`;
+  if (lookupError) title = `Google Goto Url Fix: can't resolve links (${lookupError})`;
   await Promise.all([
-    api.action.setBadgeText({ ...target, text: enabled ? "ON" : "" }),
-    api.action.setBadgeBackgroundColor({ ...target, color: "#1a73e8" }),
-    api.action.setTitle({
-      ...target,
-      title: `Google Goto Url Fix: ${enabled ? "on" : "off"}`
-    })
+    api.action.setBadgeText({ ...target, text: lookupError ? "!" : enabled ? "ON" : "" }),
+    api.action.setBadgeBackgroundColor({ ...target, color: lookupError ? "#d93025" : "#1a73e8" }),
+    api.action.setTitle({ ...target, title })
   ]);
+}
+
+// The paused message is skipped so the tooltip keeps the reason for the pause.
+async function reportLookup(error) {
+  const stored = await api.storage.local.get(LOOKUP_ERROR_KEY);
+  const previous = stored[LOOKUP_ERROR_KEY] ?? "";
+  if (error === PAUSED_MESSAGE && previous) return;
+  if (error === previous) return;
+  await api.storage.local.set({ [LOOKUP_ERROR_KEY]: error });
+  await updateAction(await isEnabled());
 }
 
 api.runtime.onInstalled.addListener(async () => {
@@ -104,7 +117,7 @@ api.webRequest.onHeadersReceived.addListener(
 
 async function resolveGoto(url) {
   if (!isGoogleGoto(url)) throw new Error("Unsupported redirect URL");
-  if (await lookupsPaused()) throw new Error("Paused after Google asked for verification");
+  if (await lookupsPaused()) throw new Error(PAUSED_MESSAGE);
 
   const destination = await requestRedirect(url);
   if (isVerificationPage(destination)) {
@@ -154,7 +167,13 @@ api.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type !== "resolve-goto") return undefined;
 
   resolveGoto(message.url)
-    .then((url) => sendResponse({ ok: true, url }))
-    .catch((error) => sendResponse({ ok: false, error: error.message }));
+    .then(async (url) => {
+      await reportLookup("");
+      sendResponse({ ok: true, url });
+    })
+    .catch(async (error) => {
+      await reportLookup(error.message);
+      sendResponse({ ok: false, error: error.message });
+    });
   return true;
 });

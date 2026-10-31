@@ -28,6 +28,9 @@ The first three result headings are resolved automatically. Other links are reso
 when you hover, focus, touch, or right-click them. Sending every link to Google can
 trigger its verification page, so all lookups pause for five minutes if that happens.
 
+A red **!** badge means links can't be resolved right now. Hover over the toolbar
+button to see why. The badge clears after the next successful lookup.
+
 The extension runs only on `google.com/search` pages and only sends Google `/goto`
 URLs back to Google to obtain their redirect target. Chrome's `webRequest` API is
 used only to read that redirect event; the extension does not request access to

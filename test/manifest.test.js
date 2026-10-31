@@ -78,7 +78,8 @@ function loadBackground(fetchImpl) {
   let redirectListener;
   let headersReceivedListener;
   const noOpEvent = { addListener() {} };
-  const stored = { enabled: false };
+  const stored = { enabled: true };
+  const action = {};
   const context = {
     URL,
     fetch: fetchImpl,
@@ -88,9 +89,9 @@ function loadBackground(fetchImpl) {
         set: async (values) => { Object.assign(stored, values); }
       } },
       action: {
-        setBadgeText: async () => {},
-        setBadgeBackgroundColor: async () => {},
-        setTitle: async () => {},
+        setBadgeText: async ({ text }) => { action.text = text; },
+        setBadgeBackgroundColor: async ({ color }) => { action.color = color; },
+        setTitle: async ({ title }) => { action.title = title; },
         onClicked: noOpEvent
       },
       runtime: {
@@ -117,6 +118,7 @@ function loadBackground(fetchImpl) {
     headersReceivedListener({ url, responseHeaders });
   };
   send.stored = stored;
+  send.action = action;
   return send;
 }
 
@@ -191,6 +193,24 @@ for (const status of [200, 429]) {
     assert.equal(fetches, 1);
   });
 }
+
+test("shows a red badge with the reason until a lookup succeeds", async () => {
+  let response = { status: 200, type: "basic", headers: new Headers() };
+  const send = loadBackground(async () => response);
+  await send({ type: "resolve-goto", url: "https://www.google.com/goto?url=a" });
+  assert.equal(send.action.text, "!");
+  assert.equal(send.action.color, "#d93025");
+  assert.match(send.action.title, /did not return a redirect \(200\)/);
+
+  await send({ type: "resolve-goto", url: "https://www.google.com/goto?url=b" });
+  assert.match(send.action.title, /\(200\)/, "the pause keeps the original reason");
+
+  send.stored.pausedUntil = Date.now() - 1;
+  response = { status: 402, headers: new Headers({ location: "https://example.com/real" }) };
+  await send({ type: "resolve-goto", url: "https://www.google.com/goto?url=c" });
+  assert.equal(send.action.text, "ON");
+  assert.equal(send.action.color, "#1a73e8");
+});
 
 test("will not turn the background worker into an arbitrary URL fetcher", async () => {
   let fetched = false;
