@@ -1,13 +1,15 @@
 # Changelog
 
-## Unreleased
+## 1.0.3 — 2026-10-31
 
-- Resolves links only on hover, keyboard focus, touch, or right-click, one at a
-  time, instead of on page load, to avoid Google flagging users.
-- Never rewrites a link to Google's `/sorry` verification page.
-- Pauses all lookups for five minutes when Google asks for verification or
-  returns a response with no redirect.
-- Shows a red `!` badge, with the reason in the tooltip, when links can't be resolved.
+- Resolves unambiguous destinations already present on result anchors, then tries
+  the matching Google `/url` ping before falling back to `/goto`.
+- Adds support for localized Google Search domains across Chrome, Firefox, and Safari.
+- Prefetches a small number of nearby results by default; extension settings provide
+  a hover-only mode. Interactive lookups take priority over queued prefetches.
+- Pauses lookups for five minutes on explicit verification or rate limits, leaves
+  unresolved links unchanged, and displays loading and error badge states.
+- Adds regression and controlled Chromium end-to-end tests for resolution and challenges.
 
 ## 1.0.2 — 2026-08-27
 
