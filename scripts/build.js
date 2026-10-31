@@ -110,6 +110,10 @@ for (const [browser, manifest] of Object.entries(variants)) {
   fs.mkdirSync(path.join(directory, "icons"), { recursive: true });
   fs.copyFileSync(manifest, path.join(directory, "manifest.json"));
   for (const file of sharedFiles) fs.copyFileSync(path.join(root, file), path.join(directory, file));
+  fs.mkdirSync(path.join(directory, "assets"), { recursive: true });
+  for (const file of ["chrome-extension-list.png", "chrome-incognito-setting.png"]) {
+    fs.copyFileSync(path.join(root, "assets", file), path.join(directory, "assets", file));
+  }
   for (const icon of fs.readdirSync(path.join(root, "icons"))) {
     fs.copyFileSync(path.join(root, "icons", icon), path.join(directory, "icons", icon));
   }

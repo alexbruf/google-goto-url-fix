@@ -49,6 +49,8 @@ test("build produces valid PNG icons and every upload archive", () => {
     assert.ok(zip.length > 0, `${browser} archive is missing`);
     assert.equal(zip.subarray(0, 4).toString("hex"), "504b0304", `${browser} is not a ZIP`);
     assert.ok(zip.includes(Buffer.from("manifest.json")), `${browser} manifest is missing`);
+    assert.ok(zip.includes(Buffer.from("assets/chrome-incognito-setting.png")), `${browser} tutorial screenshot is missing`);
+    assert.ok(zip.includes(Buffer.from("assets/chrome-extension-list.png")), `${browser} tutorial screenshot is missing`);
   }
 });
 

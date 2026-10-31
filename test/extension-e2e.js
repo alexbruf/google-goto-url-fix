@@ -80,6 +80,8 @@ async function main() {
   fs.mkdirSync(extension);
   for (const file of ['background.js', 'content.js', 'options.html', 'options.js', 'welcome.html']) fs.copyFileSync(path.join(root, file), path.join(extension, file));
   fs.cpSync(path.join(root, 'icons'), path.join(extension, 'icons'), { recursive: true });
+  fs.mkdirSync(path.join(extension, 'assets'));
+  for (const file of ['chrome-extension-list.png', 'chrome-incognito-setting.png']) fs.copyFileSync(path.join(root, 'assets', file), path.join(extension, 'assets', file));
   const manifest = JSON.parse(fs.readFileSync(path.join(root, 'manifest.json')));
   manifest.content_scripts[0].matches.push('http://127.0.0.1/search*');
   if (process.env.E2E_NARROW) {
