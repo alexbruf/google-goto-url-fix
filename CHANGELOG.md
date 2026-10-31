@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.4 — 2026-10-31
+
+- Decodes redirect URLs with plain string replacement instead of assigning
+  response HTML to a DOM element.
+- Changes the Firefox add-on ID to `google-goto-url-fix@alexbruf.github.io`.
+  Firefox treats this as a new add-on: remove an earlier signed XPI before
+  installing this version.
+
 ## 1.0.3 — 2026-10-31
 
 - Resolves unambiguous destinations already present on result anchors, then tries
