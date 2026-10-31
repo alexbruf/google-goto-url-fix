@@ -8,15 +8,31 @@
     li { margin: 12px 0; }
     code { overflow-wrap: anywhere; }
     #status { padding: 12px; background: #eef3f8; border-radius: 8px; }
+    button { padding: 8px 12px; margin: 4px; }
+    pre { background: #eef3f8; padding: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
   </style>
 </head>
 <body>
   <h1>Google Goto Url Fix Test Fixture</h1>
+  <p>This local simulation runs the real content script with a mocked extension backend. Hover or focus a link and inspect the event log. It does not contact Google or test the real background resolver.</p>
   <p id="status">Starting…</p>
+  <button onclick="fixture.setEnabled(true)">Enable</button>
+  <button onclick="fixture.setEnabled(false)">Disable and restore links</button>
+  <button onclick="fixture.addDynamicResult()">Add dynamic result</button>
   <ul id="results">
-    <li><a id="goto-link" href="https://www.google.com/goto?url=fixture-main">Opaque Google result</a></li>
+    <li><a id="goto-link" href="https://www.google.com/goto?url=fixture-main" ping="https://www.google.com/url?sa=t&amp;url=fixture-main&amp;ved=example"><h3>Opaque Google result with ping</h3></a></li>
+    <li><a id="local-result" href="https://www.google.com/goto?url=local" data-target-url="https://example.org/local"><h3>Destination stored on the anchor</h3></a></li>
+    <li><a id="ambiguous-result" href="https://www.google.com/goto?url=ambiguous" data-target-url="https://example.org/one" data-url="https://example.org/two"><h3>Conflicting destination attributes</h3></a></li>
+    <li><a id="goto-second" href="https://www.google.com/goto?url=fixture-second"><h3>Second result</h3></a></li>
+    <li><a id="goto-third" href="https://www.google.com/goto?url=fixture-third"><h3>Third result</h3></a></li>
+    <li><a id="goto-fourth" href="https://www.google.com/goto?url=fixture-fourth"><h3>Fourth result</h3></a></li>
+    <li><a id="goto-citation" href="https://www.google.com/goto?url=fixture-citation">Citation without a heading</a></li>
     <li><a id="normal-link" href="https://example.net/already-normal">Normal result</a></li>
+    <li><a id="google-local-result" href="https://www.google.com/goto?url=google-local" data-target-url="https://docs.google.com/document/d/example"><h3>Google-hosted destination stored on the anchor</h3></a></li>
+    <li><a id="google-consent-result" href="https://www.google.com/goto?url=consent-local" data-target-url="https://consent.google.com/m"><h3>Consent page must not be a destination</h3></a></li>
   </ul>
+  <h2>Resolver messages</h2>
+  <pre id="log">No requests yet.</pre>
   <script src="harness.js"></script>
   <script src="../content.js"></script>
 </body>

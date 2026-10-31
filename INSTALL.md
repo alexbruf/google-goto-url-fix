@@ -96,8 +96,9 @@ Safari removes temporary extensions after 24 hours or when Safari quits.
    ordinary destination URLs.
 4. Click again to turn it off and restore the original links.
 
-The extension runs only on `google.com/search`, stores only its on/off preference,
-and has no analytics or developer-operated service.
+The extension runs on supported Google Search country domains, stores its preferences,
+temporary pause time, and latest lookup error locally, and has no analytics or
+developer-operated service. Nearby prefetch can be disabled in extension options.
 
 ## Build from source
 

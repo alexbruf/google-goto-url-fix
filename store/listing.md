@@ -40,12 +40,13 @@ original links.
 
 - Makes result links easy to copy and inspect
 - Works only on Google Search result pages
-- Stores only the on/off preference locally
+- Stores the on/off and nearby-prefetch preferences, temporary pause time, and latest lookup error locally
 - No analytics, advertising, tracking, accounts, or remote code
 - No developer-operated server
 
-The extension contacts Google only to resolve Google's own redirect links. It does
-not request access to destination websites.
+The extension contacts Google to resolve its redirect links and matching `/url` ping
+addresses. Nearby prefetch is on by default and can be disabled in extension options.
+It does not request access to destination websites.
 
 ## Category
 
@@ -53,17 +54,17 @@ Productivity
 
 ## Chrome permission justifications
 
-- `storage`: Persists the user's on/off preference locally.
-- `webRequest`: Reads the destination of Google's opaque `/goto` redirect. It is
-  filtered in code and by host access to Google only.
-- `https://google.com/*`, `https://www.google.com/*`: Finds and resolves `/goto`
-  links only on Google Search. No access to destination sites is requested.
+- `storage`: Persists preferences, a temporary challenge pause, and the latest lookup error locally.
+- `webRequest`: Reads Google `/goto` and `/url` redirect responses when needed.
+- Google country-domain host permissions: Find and resolve Google Search links on
+  supported localized domains. No access to destination sites is requested.
 
 ## Firefox data-collection disclosure
 
 The extension does not collect or transmit data to the developer or third parties.
 It processes Google redirect URLs locally and sends them only to Google as required
-to resolve the user-visible link. It stores the on/off preference locally.
+to resolve the user-visible link. It stores preferences, a temporary pause time,
+and the latest lookup error locally.
 
 ## Apple App Privacy answers
 

@@ -1,6 +1,6 @@
 {
   "name": "google-goto-url-fix",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "private": true,
   "description": "Cross-browser extension that restores copyable Google result links.",
   "scripts": {
@@ -11,6 +11,9 @@
     "sign:safari": "node scripts/sign-safari.js",
     "test": "node --test test/*.test.js",
     "test:browser": "sh scripts/test-browser-fixture.sh",
+    "test:prefetch": "sh scripts/test-prefetch-fixture.sh",
+    "test:e2e": "node test/extension-e2e.js",
+    "test:serve": "node scripts/serve-fixture.js",
     "check": "npm run build && npm test"
   }
 }

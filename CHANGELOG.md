@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.0.3 — 2026-10-31
+
+- Resolves unambiguous destinations already present on result anchors, then tries
+  the matching Google `/url` ping before falling back to `/goto`.
+- Adds support for localized Google Search domains across Chrome, Firefox, and Safari.
+- Preserves valid Google-hosted destinations while rejecting redirect and verification pages.
+- Prefetches a small number of nearby results by default; extension settings provide
+  a hover-only mode. Interactive lookups take priority over queued prefetches.
+- Pauses lookups for five minutes on explicit verification or rate limits, leaves
+  unresolved links unchanged, and displays loading and error badge states.
+- Adds regression and controlled Chromium end-to-end tests for resolution and challenges.
+- Shows optional private-browsing setup instructions on first installation.
+- Tailors private-window instructions for Firefox and explains that slow links may need another hover.
+- Provides Safari-specific first-install and Private Browsing guidance on macOS.
+
 ## 1.0.2 — 2026-08-27
 
 - Fixes Firefox timing out while resolving Google `/goto` links by reading the
