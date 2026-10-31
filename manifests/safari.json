@@ -4,8 +4,7 @@
   "version": "1.0.3",
   "description": "Turns Google's /goto result links back into ordinary, copyable links.",
   "permissions": [
-    "storage",
-    "webRequest"
+    "storage"
   ],
   "host_permissions": [
     "https://google.ad/*",

@@ -148,6 +148,7 @@ async function lookupsPaused() {
   return Date.now() < (stored[PAUSED_UNTIL_KEY] ?? 0);
 }
 
+const observesRedirects = api.runtime.getManifest().permissions?.includes("webRequest") !== false;
 const pendingRedirects = new Map();
 const gotoRequestFilter = {
   urls: [...googleHostnames].flatMap((host) => ["https://" + host + "/goto*", "https://www." + host + "/goto*", "https://" + host + "/url*", "https://www." + host + "/url*"])
@@ -155,6 +156,7 @@ const gotoRequestFilter = {
 
 const extensionOrigin = api.runtime.getURL("").replace(/\/$/, "");
 
+if (observesRedirects) {
 api.webRequest.onBeforeRequest.addListener((details) => {
   const pending = pendingRedirects.get(details.url);
   const source = details.initiator ?? details.originUrl ?? "";
@@ -192,6 +194,7 @@ api.webRequest.onHeadersReceived.addListener(
   gotoRequestFilter,
   ["responseHeaders"]
 );
+}
 
 async function resolveGoto(url, pingUrl) {
   if (!isGoogleGoto(url)) throw new Error("Unsupported redirect URL");
@@ -261,7 +264,9 @@ function requestRedirect(url) {
       const location = response.headers.get("location");
       if (response.status === 429) finish(undefined, new Error("Google rate limited requests"));
       else if (location) finish(new URL(location, url).href);
-      else if (response.type !== "opaqueredirect") {
+      else if (response.type === "opaqueredirect" && !observesRedirects) {
+        finish(undefined, new Error("Safari could not read Google’s redirect"));
+      } else if (response.type !== "opaqueredirect") {
         if (response.text) {
           const body = await response.text();
           if (/unusual traffic|g-recaptcha|recaptcha|\/sorry\/index/i.test(body)) {
@@ -373,7 +378,9 @@ async function requestPing(url) {
         if (response.status === 200) destination = validateDestination(destinationFromHtml(body), url);
       }
       if (destination) finish(destination);
-      else if (response.type !== "opaqueredirect") {
+      else if (response.type === "opaqueredirect" && !observesRedirects) {
+        finish(undefined, new Error("Safari could not read Google’s ping redirect"));
+      } else if (response.type !== "opaqueredirect") {
         finish(undefined, new Error(`Google ping did not return a destination (${response.status})`));
       }
     }).catch((error) => finish(undefined, error));
