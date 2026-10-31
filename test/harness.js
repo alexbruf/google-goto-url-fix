@@ -6,7 +6,8 @@
     ["https://www.google.com/goto?url=fixture-second", "https://example.com/resolved-second"],
     ["https://www.google.com/goto?url=fixture-third", "https://example.com/resolved-third"],
     ["https://www.google.com/goto?url=fixture-fourth", "https://example.com/resolved-fourth"],
-    ["https://www.google.com/goto?url=fixture-citation", "https://example.com/resolved-citation"]
+    ["https://www.google.com/goto?url=fixture-citation", "https://example.com/resolved-citation"],
+    ["https://www.google.com/goto?url=fixture-dynamic", "https://example.org/resolved-dynamic"]
   ]);
 
   globalThis.chrome = {

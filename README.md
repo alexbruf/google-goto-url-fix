@@ -24,9 +24,9 @@ Click the toolbar button to switch rewriting on or off. A blue **ON** badge mean
 it is active. The setting persists across browser restarts. Turning it off restores
 the original Google links already changed on the current page.
 
-The first three result headings are resolved automatically. Other links are resolved
-when you hover, focus, touch, or right-click them. Sending every link to Google can
-trigger its verification page, so all lookups pause for five minutes if that happens.
+Links are resolved when you hover, focus, touch, or right-click them, not on page
+load. Sending many links to Google can trigger its verification page, so all lookups
+pause for five minutes if that happens.
 
 A red **!** badge means links can't be resolved right now. Hover over the toolbar
 button to see why. The badge clears after the next successful lookup.
@@ -43,7 +43,7 @@ the reported 402 and opaque 3xx responses, verify that non-Google URLs are never
 fetched, and create all four upload packages.
 
 `test/fixture.html` is a deterministic browser fixture for the real content script.
-It covers initial links, dynamically inserted results, normal links, and turning
+It covers hover resolution, dynamically inserted results, normal links, and turning
 the extension off. It uses no network and does not need Google to avoid bot-check
 flakiness. Run it with `npm run test:browser`; the script always closes its single
 agent-browser session on completion.

@@ -1,7 +1,6 @@
 (() => {
   const api = globalThis.browser ?? globalThis.chrome;
-  const BACKGROUND_LIMIT = 3;
-  const HOVER_DELAY_MS = 150;
+  const HOVER_DELAY_MS = 300;
   const originals = new Map();
   const cache = new Map();
   const queued = new Set();
@@ -9,7 +8,6 @@
   let enabled = false;
   let active = 0;
   let observer;
-  let backgroundLeft = 0;
   let hoverTimer;
 
   function isGotoLink(anchor) {
@@ -38,21 +36,15 @@
     drain();
   }
 
-  // Requesting every result gets users flagged by Google, so only the first few
-  // result headings resolve unprompted. Everything else waits for hover or focus.
-  function enqueueInBackground(anchor) {
-    if (!enabled || !isGotoLink(anchor)) return;
-    const known = cache.has(anchor.href) || queued.has(anchor.href);
-    if (!known) {
-      if (backgroundLeft === 0 || !anchor.querySelector("h3")) return;
-      backgroundLeft -= 1;
-    }
-    enqueue(anchor);
+  // Requesting links unprompted gets users flagged by Google, so a scan only
+  // applies destinations already known. New lookups wait for hover or focus.
+  function applyKnown(anchor) {
+    if (enabled && isGotoLink(anchor) && cache.has(anchor.href)) enqueue(anchor);
   }
 
   function scan(root = document) {
-    if (root instanceof HTMLAnchorElement) enqueueInBackground(root);
-    root.querySelectorAll?.("a[href]").forEach(enqueueInBackground);
+    if (root instanceof HTMLAnchorElement) applyKnown(root);
+    root.querySelectorAll?.("a[href]").forEach(applyKnown);
   }
 
   function linkFromEvent(event) {
@@ -76,18 +68,14 @@
   }
 
   function drain() {
-    while (enabled && active < 3 && queue.length) {
+    while (enabled && active < 1 && queue.length) {
       const item = queue.shift();
       active += 1;
       api.runtime.sendMessage({ type: "resolve-goto", url: item.original })
         .then((result) => {
           if (!result?.ok || !result.url) return;
           cache.set(item.original, result.url);
-          for (const [anchor, original] of originals) {
-            if (enabled && original === item.original && anchor.isConnected) {
-              anchor.href = result.url;
-            }
-          }
+          scan();
         })
         .catch(() => {})
         .finally(() => {
@@ -101,7 +89,6 @@
   function start() {
     if (enabled) return;
     enabled = true;
-    backgroundLeft = BACKGROUND_LIMIT;
     scan();
     document.addEventListener("pointerover", resolveSoon);
     document.addEventListener("pointerout", cancelResolve);
@@ -113,7 +100,7 @@
         mutation.addedNodes.forEach((node) => {
           if (node.nodeType === Node.ELEMENT_NODE) scan(node);
         });
-        if (mutation.type === "attributes") enqueueInBackground(mutation.target);
+        if (mutation.type === "attributes") applyKnown(mutation.target);
       }
     });
     observer.observe(document.documentElement, {
