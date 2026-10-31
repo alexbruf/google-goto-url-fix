@@ -5,6 +5,7 @@
 - Resolves unambiguous destinations already present on result anchors, then tries
   the matching Google `/url` ping before falling back to `/goto`.
 - Adds support for localized Google Search domains across Chrome, Firefox, and Safari.
+- Preserves valid Google-hosted destinations while rejecting redirect and verification pages.
 - Prefetches a small number of nearby results by default; extension settings provide
   a hover-only mode. Interactive lookups take priority over queued prefetches.
 - Pauses lookups for five minutes on explicit verification or rate limits, leaves

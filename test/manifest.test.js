@@ -296,6 +296,37 @@ test("resolves a localized Google domain and rejects lookalikes", async () => {
   assert.equal(fetches, 1);
 });
 
+for (const destination of [
+  "https://cloud.google.com/docs",
+  "https://support.google.com/mail/answer/1",
+  "https://docs.google.com/document/d/x",
+  "https://sites.google.com/sorry-not-sorry"
+]) {
+  test(`accepts legitimate Google destination ${destination}`, async () => {
+    const send = loadBackground(async () => ({ status: 302, headers: new Headers({ location: destination }) }));
+    const result = await send({ type: "resolve-goto", url: "https://www.google.com/goto?url=destination" });
+    assert.equal(result.ok, true);
+    assert.equal(result.url, destination);
+    assert.equal(send.stored.pausedUntil, undefined);
+  });
+}
+
+for (const destination of ["https://www.google.com/sorry", "https://www.google.co.uk/sorry/index"]) {
+  test(`pauses on a Google verification path ${destination}`, async () => {
+    const send = loadBackground(async () => ({ status: 302, headers: new Headers({ location: destination }) }));
+    const result = await send({ type: "resolve-goto", url: "https://www.google.com/goto?url=challenge" });
+    assert.equal(result.ok, false);
+    assert.ok(send.stored.pausedUntil > Date.now());
+  });
+}
+
+for (const destination of ["https://www.google.com/url?url=opaque", "https://www.google.com/goto?url=opaque", "https://consent.google.com/m"]) {
+  test(`does not accept Google navigation or consent URL ${destination}`, async () => {
+    const send = loadBackground(async () => ({ status: 302, headers: new Headers({ location: destination }) }));
+    assert.equal((await send({ type: "resolve-goto", url: "https://www.google.com/goto?url=x" })).ok, false);
+  });
+}
+
 test("does not try /goto after a ping verification redirect", async () => {
   const source = "https://www.google.com/goto?url=flagged";
   const ping = "https://www.google.com/url?url=flagged";

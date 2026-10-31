@@ -110,7 +110,15 @@ function sameGoogleToken(gotoUrl, pingUrl) {
 
 function isVerificationPage(rawUrl) {
   const url = new URL(rawUrl);
-  return /(^|\.)google\.[a-z.]+$/.test(url.hostname) && url.pathname.startsWith("/sorry");
+  return googleHostnames.has(url.hostname.replace(/^www\./, "")) &&
+    (url.pathname === "/sorry" || url.pathname.startsWith("/sorry/"));
+}
+
+function isGoogleNavigationPage(url) {
+  const host = url.hostname;
+  if (host.startsWith("consent.") && googleHostnames.has(host.slice("consent.".length))) return true;
+  return googleHostnames.has(host.replace(/^www\./, "")) &&
+    /^\/(?:goto|url|search|sorry|recaptcha)(?:\/|$)/.test(url.pathname);
 }
 
 // Stored rather than held in memory because the service worker can be stopped
@@ -289,7 +297,7 @@ function validateDestination(rawUrl, baseUrl) {
   try {
     const url = new URL(rawUrl, baseUrl);
     if (!["http:", "https:"].includes(url.protocol) || !url.hostname) return null;
-    if (/(^|\.)google\.[a-z.]+$/i.test(url.hostname)) return null;
+    if (isGoogleNavigationPage(url)) return null;
     if (url.username || url.password) return null;
     return url.href;
   } catch {

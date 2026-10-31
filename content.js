@@ -60,7 +60,9 @@ const googleHostnames = new Set(["google.ad","google.ae","google.al","google.am"
         try {
           const url = new URL(candidate.trim());
           if (!["http:", "https:"].includes(url.protocol) || url.username || url.password) continue;
-          if (/(^|\.)google\.[a-z.]+$/i.test(url.hostname) ||
+          const googleSearchHost = googleHostnames.has(url.hostname.replace(/^www\./, ""));
+          const googleConsentHost = url.hostname.startsWith("consent.") && googleHostnames.has(url.hostname.slice("consent.".length));
+          if ((googleSearchHost && /^\/(?:goto|url|search|sorry|recaptcha)(?:\/|$)/.test(url.pathname)) || googleConsentHost ||
               /(^|\.)(googleadservices\.com|googlesyndication\.com|doubleclick\.net|gstatic\.com|googleapis\.com|googleusercontent\.com)$/i.test(url.hostname)) continue;
           candidates.add(url.href);
         } catch {

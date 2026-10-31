@@ -19,6 +19,8 @@ agent-browser --session "$session" eval '
     if (state.normal !== "https://example.net/already-normal") throw new Error("normal link was changed");
     if (state.requests !== 0) throw new Error(`expected no requests on load, saw ${state.requests}`);
     if (document.querySelector("#local-result").href !== "https://example.org/local") throw new Error("page data was not resolved on load");
+    if (document.querySelector("#google-local-result").href !== "https://docs.google.com/document/d/example") throw new Error("Google-hosted page data was not resolved");
+    if (document.querySelector("#google-consent-result").pathname !== "/goto") throw new Error("consent page was accepted as a destination");
     return true;
   })()
 ' >/dev/null
