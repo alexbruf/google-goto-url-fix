@@ -19,7 +19,8 @@ contained 13 `/goto` links. It contains no personal account information.
 
 ## Firefox Add-ons
 
-- Add-on icon: supplied inside the extension package
+- Add-on icon: `../../icons/icon-128.png`, uploaded separately on the listing (AMO does
+  not use the icon inside the extension package)
 - Screenshot: `store-screenshot-1280x800.png`
 
 ## Apple App Store / Safari
