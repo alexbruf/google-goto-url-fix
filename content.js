@@ -100,7 +100,6 @@ const googleHostnames = new Set(["google.ad","google.ae","google.al","google.am"
   function refreshStatusBar(anchor) {
     if (!isFirefox || !anchor.isConnected || !anchor.matches(":hover")) return;
     const active = document.activeElement;
-    if (active === anchor) return;
     if (active && (active.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(active.tagName))) return;
     const spacer = document.createElement("span");
     spacer.tabIndex = -1;
