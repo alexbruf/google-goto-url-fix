@@ -35,14 +35,21 @@ Updates are manual until the Microsoft Edge Add-ons listing is available.
 
 ## Firefox
 
-For normal persistent installation:
+Install from the Firefox Add-ons store:
+https://addons.mozilla.org/firefox/addon/google-goto-url-fix/
 
-1. Download `google-goto-url-fix-firefox-<version>.xpi` from the latest GitHub Release.
-2. Open `about:addons`, click the gear menu, and choose **Install Add-on From File…**.
-3. Select the downloaded XPI and approve the requested permissions.
+1. Open the store page and choose **Add to Firefox**.
+2. Approve the requested permissions.
 
-The XPI is signed by Mozilla for self-distribution. It does not require a public
-Firefox Add-ons listing. For temporary testing of an unsigned source build:
+Firefox updates store installs automatically. If you installed an older XPI by
+hand, remove it in `about:addons` first.
+
+Each GitHub Release also includes a Mozilla-signed
+`google-goto-url-fix-firefox-<version>.xpi` for installing without the store: open
+`about:addons`, click the gear menu, choose **Install Add-on From File…**, and select
+the XPI. Updates to it are manual.
+
+For temporary testing of an unsigned source build:
 
 1. Download and unzip `google-goto-url-fix-firefox-<version>.zip`.
 2. Open `about:debugging#/runtime/this-firefox`.
@@ -53,8 +60,7 @@ Firefox Add-ons listing. For temporary testing of an unsigned source build:
 
 _Firefox interface screenshot from [Mozilla Firefox Source Docs](https://firefox-source-docs.mozilla.org/devtools-user/about_colon_debugging/). The exact styling may vary by Firefox version._
 
-Firefox removes temporary add-ons when it restarts. Updates to a self-distributed
-XPI are manual unless an HTTPS update manifest is added later.
+Firefox removes temporary add-ons when it restarts.
 
 ## Safari on macOS
 

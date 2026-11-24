@@ -8,16 +8,17 @@ pause lookups instead.
 
 ## Install
 
-Download the files from the [latest GitHub Release](https://github.com/alexbruf/google-goto-url-fix/releases/latest):
+- **Firefox:** install from [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/google-goto-url-fix/),
+  which keeps it updated automatically.
 
-- **Firefox:** download the signed `.xpi`, then open `about:addons` and choose
-  **Install Add-on From File…** from the gear menu.
+The other browsers use the files from the [latest GitHub Release](https://github.com/alexbruf/google-goto-url-fix/releases/latest):
+
 - **Safari:** download the `safari-app` ZIP, unzip it, move the app into Applications,
   open it once, then enable the extension in Safari → Settings → Extensions.
 - **Chrome and Edge:** download the browser's ZIP and follow the developer-mode
   installation steps in [INSTALL.md](INSTALL.md).
 
-The Firefox XPI is signed by Mozilla. The Safari app and embedded extension are
+Each release also includes a Mozilla-signed Firefox XPI. The Safari app and embedded extension are
 signed with Apple Developer ID and notarized for direct installation outside the
 Mac App Store. See [INSTALL.md](INSTALL.md) for complete instructions and temporary
 developer-install alternatives.
