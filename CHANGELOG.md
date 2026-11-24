@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Firefox: shows a link's real address in the status bar as soon as it is rewritten
+  while hovered, without moving focus out of a text field (#15). Based on #13 by pitr223.
+- Drops the non-`www` Google domains from permissions, since Google redirects them to
+  `www` (#14).
+
 ## 1.0.6 — 2026-11-24
 
 - Stops rewriting a link after three rewrites in ten seconds if the page keeps

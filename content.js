@@ -89,6 +89,28 @@ const googleHostnames = new Set(["google.ad","google.ae","google.al","google.am"
     if (!rewriteAllowed(anchor)) return;
     rewrites.get(anchor).push(Date.now());
     anchor.href = url;
+    refreshStatusBar(anchor);
+  }
+
+  // Firefox keeps showing a hovered link's old /goto address in its status bar until
+  // focus changes (#15). Move focus away and back, but only for the link under the
+  // pointer and never out of a text field the user may be typing in.
+  // Based on the approach in #13 by pitr223.
+  const isFirefox = /\bFirefox\//.test(navigator.userAgent);
+  function refreshStatusBar(anchor) {
+    if (!isFirefox || !anchor.isConnected || !anchor.matches(":hover")) return;
+    const active = document.activeElement;
+    if (active === anchor) return;
+    if (active && (active.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(active.tagName))) return;
+    const spacer = document.createElement("span");
+    spacer.tabIndex = -1;
+    spacer.style.cssText = "position:fixed;top:0;left:0;width:0;height:0;overflow:hidden;";
+    document.documentElement.append(spacer);
+    spacer.focus({ preventScroll: true });
+    requestAnimationFrame(() => {
+      spacer.remove();
+      if (anchor.isConnected && anchor.matches(":hover")) anchor.focus({ preventScroll: true, focusVisible: false });
+    });
   }
 
   function enqueue(anchor, prefetch = false) {
