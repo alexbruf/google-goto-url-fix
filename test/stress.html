@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Google Goto Url Fix CPU stress fixture</title>
+</head>
+<body>
+  <p>Runs the real content script against a page that misbehaves like a busy Google results page.
+  Modes: <code>?mode=revert</code> puts rewritten links back to /goto, <code>?mode=churn</code> keeps adding content.</p>
+  <ul id="results"></ul>
+  <div id="stream"></div>
+  <script src="stress-harness.js"></script>
+  <script src="../content.js"></script>
+</body>
+</html>
