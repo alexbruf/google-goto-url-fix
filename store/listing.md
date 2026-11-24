@@ -61,14 +61,19 @@ Productivity
 
 ## Firefox data-collection disclosure
 
-The extension does not collect or transmit data to the developer or third parties.
-It processes Google redirect URLs locally and sends them only to Google as required
-to resolve the user-visible link. It stores preferences, a temporary pause time,
+By default the extension does not collect or transmit data to the developer or third
+parties. It processes Google redirect URLs locally and sends them only to Google as
+required to resolve the user-visible link. An optional fallback, off by default,
+sends Google `/goto` links that Google fails to resolve to DataForSEO or cloro, using
+the user's own account. Firefox asks for the optional "browsing activity" data
+permission before this can be turned on. It stores preferences, a temporary pause time,
 and the latest lookup error locally.
 
 ## Apple App Privacy answers
 
-- Data collected: None.
+- Data collected: None by default. If the user turns on the optional fallback service,
+  Google result links that Google fails to resolve are sent to the service they chose
+  (DataForSEO or cloro) under their own account; the developer receives nothing.
 - Tracking: No.
 - Third-party analytics: No.
 - Advertising: No.

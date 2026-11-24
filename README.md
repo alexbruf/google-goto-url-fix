@@ -45,6 +45,19 @@ matching `/url` ping URLs back to Google to obtain their redirect target. Chrome
 `webRequest` API is used only to read Google redirect events; the extension does not
 request access to destination sites. It has no dependencies, analytics, or remote code.
 
+### Optional fallback service
+
+If Google won't resolve links, for example while it is asking for verification, the
+extension can ask DataForSEO or cloro instead. It's off by default. To turn it on, open
+the extension's settings, choose a service under **Fallback service**, enter your own
+DataForSEO API login and password or cloro API key, and save.
+
+- Only links whose normal lookup failed are sent, plus, once one fallback lookup has
+  worked, the page's other unresolved result links, so they can be resolved together.
+- DataForSEO gets these as one batch request (up to 100 links). cloro takes one link
+  per request.
+- Credentials are kept in the browser's local extension storage and are not synced.
+
 ## Tests
 
 Run `npm run check`. The tests validate all manifests, parse both scripts, simulate

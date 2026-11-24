@@ -379,6 +379,135 @@ async function requestPing(url) {
   });
 }
 
+// Optional paid fallback: when Google won't give up a destination, ask a service the
+// user has configured. Failures are collected briefly so DataForSEO gets one batch request.
+const FALLBACK_KEYS = ["fallbackProvider", "dataforseoLogin", "dataforseoPassword", "cloroApiKey"];
+const FALLBACK_BATCH_MS = 300;
+const FALLBACK_BATCH_LIMIT = 100;
+const FALLBACK_TIMEOUT_MS = 60000;
+const CLORO_CONCURRENCY = 4;
+const DATAFORSEO_URL = "https://api.dataforseo.com/v3/appendix/goto_url_converter";
+const CLORO_URL = "https://api.cloro.dev/v1/monitor/google/goto";
+
+async function fallbackSettings() {
+  const stored = await api.storage.local.get(FALLBACK_KEYS);
+  if (stored.fallbackProvider === "dataforseo" && stored.dataforseoLogin && stored.dataforseoPassword) {
+    return { provider: "dataforseo", login: stored.dataforseoLogin, password: stored.dataforseoPassword };
+  }
+  if (stored.fallbackProvider === "cloro" && stored.cloroApiKey) {
+    return { provider: "cloro", apiKey: stored.cloroApiKey };
+  }
+  return null;
+}
+
+async function postJson(url, authorization, body) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FALLBACK_TIMEOUT_MS);
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      signal: controller.signal,
+      credentials: "omit",
+      cache: "no-store",
+      headers: { Authorization: authorization, "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+    let data = null;
+    try { data = await response.json(); } catch { /* reported by status below */ }
+    return { status: response.status, data };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+// One request for up to FALLBACK_BATCH_LIMIT links: [{ goto_urls: [...] }].
+async function resolveWithDataForSeo({ login, password }, urls) {
+  const { status, data } = await postJson(DATAFORSEO_URL, `Basic ${btoa(`${login}:${password}`)}`, [{ goto_urls: urls }]);
+  const task = data?.tasks?.[0];
+  if (status === 401 || data?.status_code === 40100) throw new Error("DataForSEO rejected the login");
+  if (status !== 200 || data?.status_code !== 20000 || task?.status_code !== 20000) {
+    throw new Error(`DataForSEO could not resolve links (${task?.status_message ?? data?.status_message ?? status})`);
+  }
+  return new Map((task.result ?? []).filter(item => item?.goto && item?.url).map(item => [item.goto, item.url]));
+}
+
+// cloro resolves one link per request.
+async function resolveWithCloro({ apiKey }, urls) {
+  const results = new Map();
+  let authError;
+  const pending = [...urls];
+  async function worker() {
+    while (pending.length && !authError) {
+      const url = pending.shift();
+      try {
+        const { status, data } = await postJson(CLORO_URL, `Bearer ${apiKey}`, { url });
+        if (status === 401 || status === 403) authError = new Error("cloro rejected the API key");
+        else if (status === 200 && data?.url) results.set(url, data.url);
+      } catch {
+        // A failed link stays unresolved; others continue.
+      }
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(CLORO_CONCURRENCY, urls.length) }, worker));
+  if (authError && results.size === 0) throw authError;
+  return results;
+}
+
+const fallbackPending = new Map();
+let fallbackTimer;
+
+function resolveWithFallback(url) {
+  return new Promise((resolve, reject) => {
+    const waiters = fallbackPending.get(url) ?? [];
+    waiters.push({ resolve, reject });
+    fallbackPending.set(url, waiters);
+    clearTimeout(fallbackTimer);
+    fallbackTimer = setTimeout(flushFallback, fallbackPending.size >= FALLBACK_BATCH_LIMIT ? 0 : FALLBACK_BATCH_MS);
+  });
+}
+
+async function flushFallback() {
+  const batch = [...fallbackPending.entries()].slice(0, FALLBACK_BATCH_LIMIT);
+  for (const [url] of batch) fallbackPending.delete(url);
+  if (fallbackPending.size) fallbackTimer = setTimeout(flushFallback, 0);
+  const rejectAll = error => batch.forEach(([, waiters]) => waiters.forEach(waiter => waiter.reject(error)));
+  const settings = await fallbackSettings();
+  if (!settings) {
+    rejectAll(new Error("No fallback service is configured"));
+    return;
+  }
+  const name = settings.provider === "dataforseo" ? "DataForSEO" : "cloro";
+  let results;
+  try {
+    const urls = batch.map(([url]) => url);
+    results = settings.provider === "dataforseo"
+      ? await resolveWithDataForSeo(settings, urls)
+      : await resolveWithCloro(settings, urls);
+  } catch (error) {
+    rejectAll(new Error(error.name === "AbortError" ? `${name} timed out` : error.message));
+    return;
+  }
+  for (const [url, waiters] of batch) {
+    const raw = results.get(url);
+    const destination = raw && !isVerificationPage(new URL(raw, url).href) ? validateDestination(raw, url) : null;
+    waiters.forEach(waiter => destination
+      ? waiter.resolve(destination)
+      : waiter.reject(new Error(`${name} could not resolve this link`)));
+  }
+}
+
+function finishFallbackLookup(message, sendResponse, googleError) {
+  resolveWithFallback(message.url).then(async (url) => {
+    await reportLookup("");
+    await updateAction(await isEnabled());
+    sendResponse({ ok: true, url, via: "fallback" });
+  }, async (error) => {
+    await reportLookup(`${googleError.message}; ${error.message}`);
+    await updateAction(await isEnabled());
+    sendResponse({ ok: false, error: googleError.message });
+  });
+}
+
 // Serialize across tabs, while letting user interactions jump ahead of queued prefetches.
 const lookupQueue = [];
 let drainingLookups = false;
@@ -404,6 +533,11 @@ async function drainLookups() {
         sendResponse({ ok: true, url });
       } catch (error) {
         lookupInProgress = false;
+        // Not awaited, so further failures in this queue join the same fallback batch.
+        if (isGoogleGoto(message.url) && await fallbackSettings()) {
+          finishFallbackLookup(message, sendResponse, error);
+          continue;
+        }
         await reportLookup(error.message);
         await updateAction(await isEnabled());
         sendResponse({ ok: false, error: error.message });
@@ -414,12 +548,30 @@ async function drainLookups() {
   }
 }
 
+// Once Google is failing and a fallback works, the page sends its remaining links in one message.
+async function resolveBatch(message, sendResponse) {
+  const stored = await api.storage.local.get([ENABLED_KEY, "prefetchNearby"]);
+  const urls = [...new Set(Array.isArray(message.urls) ? message.urls : [])].filter(isGoogleGoto).slice(0, FALLBACK_BATCH_LIMIT);
+  if (stored[ENABLED_KEY] !== true || stored.prefetchNearby === false || !urls.length || !(await fallbackSettings())) {
+    sendResponse({ ok: false, error: "Batch lookup unavailable" });
+    return;
+  }
+  const settled = await Promise.allSettled(urls.map(resolveWithFallback));
+  const results = {};
+  settled.forEach((outcome, index) => { if (outcome.status === "fulfilled") results[urls[index]] = outcome.value; });
+  sendResponse({ ok: true, results });
+}
+
 api.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message?.type === "promote-goto") {
     const queued = lookupQueue.find(item => item.message.prefetch && item.message.url === message.url &&
       item.sender.tab?.id === sender.tab?.id && item.sender.frameId === sender.frameId);
     if (queued) queued.message.prefetch = false;
     return undefined;
+  }
+  if (message?.type === "resolve-goto-batch") {
+    void resolveBatch(message, sendResponse);
+    return true;
   }
   if (message?.type !== "resolve-goto") return undefined;
   lookupQueue.push({ message, sender, sendResponse });

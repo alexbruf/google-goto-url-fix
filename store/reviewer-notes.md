@@ -20,4 +20,7 @@ on by default and can be disabled in extension options; explicit Google challeng
 pause lookups.
 
 No login, purchase, test account, remote server, analytics, or user-data collection
-is involved.
+is involved by default. An optional fallback in the extension settings, off by default,
+sends Google `/goto` links that Google fails to resolve to DataForSEO or cloro using
+credentials the user enters for their own account. On Firefox it requests the optional
+`browsingActivity` data-collection permission before saving.

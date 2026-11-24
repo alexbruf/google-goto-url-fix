@@ -7,6 +7,11 @@
     body { font: 16px system-ui, sans-serif; max-width: 40rem; margin: 3rem auto; padding: 0 1rem; color: #202124; }
     label { display: flex; gap: .6rem; align-items: baseline; font-weight: 600; }
     p { line-height: 1.5; color: #4b5563; }
+    fieldset { border: 1px solid #d1d5db; border-radius: 8px; margin-top: 2rem; padding: 1rem 1.2rem; }
+    legend { font-weight: 600; padding: 0 .3rem; }
+    .field { display: block; font-weight: 400; margin: .8rem 0; }
+    .field input, .field select { display: block; width: 100%; box-sizing: border-box; margin-top: .3rem; padding: .45rem; font: inherit; }
+    [hidden] { display: none !important; }
   </style>
 </head>
 <body>
@@ -14,6 +19,31 @@
   <label><input type="checkbox" id="prefetch"> Prefetch nearby search results</label>
   <p>Resolve a few nearby links after scrolling pauses, so they may be ready before you hover. Turn this off to resolve links only when you interact with them.</p>
   <p id="status" role="status"></p>
+
+  <fieldset>
+    <legend>Fallback service</legend>
+    <p>If Google won't give up a link's destination, the extension can ask a paid service you have an account with.
+      When this is on, <strong>the Google links that fail are sent to that service</strong>.
+      Nothing is sent while this is set to "None". Your login is kept in this browser only and is not synced.</p>
+    <label class="field">Service
+      <select id="fallback-provider">
+        <option value="none">None</option>
+        <option value="dataforseo">DataForSEO</option>
+        <option value="cloro">cloro</option>
+      </select>
+    </label>
+    <div id="dataforseo-fields" hidden>
+      <label class="field">DataForSEO API login <input id="dataforseo-login" autocomplete="off"></label>
+      <label class="field">DataForSEO API password <input id="dataforseo-password" type="password" autocomplete="off"></label>
+      <p>Find these under API Access at app.dataforseo.com. Failed links are sent together in one request.</p>
+    </div>
+    <div id="cloro-fields" hidden>
+      <label class="field">cloro API key <input id="cloro-key" type="password" autocomplete="off"></label>
+      <p>Create a key in the cloro dashboard. cloro resolves one link per request.</p>
+    </div>
+    <button id="fallback-save" type="button">Save fallback settings</button>
+    <p id="fallback-status" role="status"></p>
+  </fieldset>
   <script src="options.js"></script>
 </body>
 </html>
