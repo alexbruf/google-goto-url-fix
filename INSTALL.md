@@ -1,9 +1,20 @@
 # Install Google Goto Url Fix
 
-Until the browser-store listings are approved, use the instructions below. Only
-install extensions downloaded from this project's official GitHub Releases page.
+Chrome, Edge, and Firefox install from their official stores, which keep the
+extension updated. Safari uses a signed download from the GitHub Releases page. Only
+install extensions from these stores or this project's official GitHub Releases page.
 
 ## Chrome
+
+Install from the Chrome Web Store:
+https://chromewebstore.google.com/detail/google-goto-url-fix/fnldlbelapgpfoonbckjjgcfopfakolp
+
+1. Open the store page and choose **Add to Chrome**.
+2. Approve **Add extension**.
+3. Pin **Google Goto Url Fix** from Chrome's Extensions menu if desired.
+
+To load an unpacked build instead, for example to test a release before it reaches
+the store:
 
 1. Download `google-goto-url-fix-chrome-<version>.zip` from the latest GitHub Release.
 2. Unzip it into a permanent folder. Do not delete that folder after installation.
@@ -22,6 +33,14 @@ extension's **Reload** button on `chrome://extensions`.
 
 ## Microsoft Edge
 
+Install from Microsoft Edge Add-ons:
+https://microsoftedge.microsoft.com/addons/detail/google-goto-url-fix/holcljcoccbcdnddecfggbaemfgohbac
+
+1. Open the store page and choose **Get**.
+2. Approve **Add extension**.
+
+To load an unpacked build instead:
+
 1. Download `google-goto-url-fix-edge-<version>.zip` from the latest GitHub Release.
 2. Unzip it into a permanent folder.
 3. Open `edge://extensions`.
@@ -31,7 +50,7 @@ extension's **Reload** button on `chrome://extensions`.
 Edge's Extensions page uses the same Developer mode and **Load unpacked** flow
 shown in the Chrome screenshot above.
 
-Updates are manual until the Microsoft Edge Add-ons listing is available.
+Unpacked installs don't update automatically.
 
 ## Firefox
 
