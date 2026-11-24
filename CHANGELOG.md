@@ -6,6 +6,9 @@
   putting its `/goto` address back, so the extension can no longer trade changes
   with the page indefinitely and use high CPU (#12).
 - Adds a CPU stress fixture, `npm run test:stress`.
+- Adds an optional fallback service, off by default. When Google won't resolve a
+  link, the extension can ask DataForSEO or cloro using the user's own account.
+  DataForSEO lookups are sent together as one batch request.
 
 ## 1.0.4 — 2026-10-31
 

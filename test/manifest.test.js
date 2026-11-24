@@ -29,7 +29,8 @@ test("browser-specific manifests keep the same narrow scope", () => {
 test("browser-specific release declarations satisfy signing toolchains", () => {
   const firefox = JSON.parse(fs.readFileSync(path.join(root, "manifests", "firefox.json"), "utf8"));
   assert.deepEqual(firefox.browser_specific_settings.gecko.data_collection_permissions, {
-    required: ["none"]
+    required: ["none"],
+    optional: ["browsingActivity"]
   });
 
   const safari = JSON.parse(fs.readFileSync(path.join(root, "manifests", "safari.json"), "utf8"));
@@ -117,7 +118,8 @@ function loadBackground(fetchImpl, extensionOrigin = "chrome-extension://test", 
       tabs: { sendMessage: async () => {}, create: async tab => { openedTabs.push(tab); } }
     },
     setTimeout,
-    clearTimeout
+    clearTimeout,
+    btoa
   };
   vm.runInNewContext(
     fs.readFileSync(path.join(root, "background.js"), "utf8"),
@@ -574,4 +576,96 @@ test("Safari fails opaque redirects promptly without following destination sites
   assert.equal(result.ok, false);
   assert.match(result.error, /could not read/);
   assert.equal(calls, 1);
+});
+
+
+// Google fails every lookup; record which fallback requests were made.
+function googleFailsWithFallback(stored, provider) {
+  const calls = [];
+  const send = loadBackground(async (url, options = {}) => {
+    if (url.startsWith("https://www.google.com/")) return { status: 200, type: "basic", headers: new Headers(), text: async () => "" };
+    const body = JSON.parse(options.body);
+    calls.push({ url, auth: options.headers.Authorization, body, credentials: options.credentials });
+    return provider(url, body);
+  });
+  Object.assign(send.stored, stored);
+  send.calls = calls;
+  return send;
+}
+
+const dataforseo = { fallbackProvider: "dataforseo", dataforseoLogin: "me@example.com", dataforseoPassword: "secret" };
+const dataforseoReply = (url, body) => ({
+  status: 200,
+  json: async () => ({
+    status_code: 20000,
+    tasks: [{ status_code: 20000, result: body[0].goto_urls.map(goto => ({ goto, url: goto.endsWith("bad") ? null : `https://example.com/${new URL(goto).searchParams.get("url")}` })) }]
+  })
+});
+
+test("does not contact a fallback service unless one is configured", async () => {
+  const send = googleFailsWithFallback({}, () => { throw new Error("should not be called"); });
+  const result = await send({ type: "resolve-goto", url: "https://www.google.com/goto?url=a" });
+  assert.equal(result.ok, false);
+  assert.equal(send.calls.length, 0);
+});
+
+test("failed lookups go to DataForSEO together in one batch request", async () => {
+  const send = googleFailsWithFallback(dataforseo, dataforseoReply);
+  const results = await Promise.all(["a", "b", "bad"].map(token => send({ type: "resolve-goto", url: `https://www.google.com/goto?url=${token}` })));
+  assert.equal(send.calls.length, 1);
+  assert.equal(send.calls[0].url, "https://api.dataforseo.com/v3/appendix/goto_url_converter");
+  assert.equal(send.calls[0].auth, `Basic ${btoa("me@example.com:secret")}`);
+  assert.equal(send.calls[0].credentials, "omit");
+  assert.deepEqual(send.calls[0].body[0].goto_urls.length, 3);
+  assert.deepEqual(results.map(result => result.ok), [true, true, false]);
+  assert.equal(results[0].url, "https://example.com/a");
+  assert.equal(results[0].via, "fallback");
+});
+
+test("a page batch resolves many links with one DataForSEO request", async () => {
+  const send = googleFailsWithFallback(dataforseo, dataforseoReply);
+  const urls = ["x", "y", "z"].map(token => `https://www.google.com/goto?url=${token}`);
+  const result = await send({ type: "resolve-goto-batch", urls: [...urls, "https://example.com/goto?url=not-google"] });
+  assert.equal(result.ok, true);
+  assert.equal(send.calls.length, 1);
+  assert.deepEqual(send.calls[0].body[0].goto_urls, urls);
+  assert.equal(result.results[urls[1]], "https://example.com/y");
+});
+
+test("a page batch is refused when no fallback is configured", async () => {
+  const send = googleFailsWithFallback({}, () => { throw new Error("should not be called"); });
+  const result = await send({ type: "resolve-goto-batch", urls: ["https://www.google.com/goto?url=x"] });
+  assert.equal(result.ok, false);
+});
+
+test("cloro resolves each failed link with the API key", async () => {
+  const send = googleFailsWithFallback({ fallbackProvider: "cloro", cloroApiKey: "sk_test" }, (url, body) =>
+    body.url.endsWith("held")
+      ? { status: 502, json: async () => ({ success: false }) }
+      : { status: 200, json: async () => ({ url: "https://example.com/cloro" }) });
+  const [ok, held] = await Promise.all([
+    send({ type: "resolve-goto", url: "https://www.google.com/goto?url=ok" }),
+    send({ type: "resolve-goto", url: "https://www.google.com/goto?url=held" })
+  ]);
+  assert.equal(send.calls.length, 2);
+  assert.equal(send.calls[0].auth, "Bearer sk_test");
+  assert.equal(ok.url, "https://example.com/cloro");
+  assert.equal(held.ok, false);
+});
+
+test("a fallback service cannot return a Google verification or search page", async () => {
+  const send = googleFailsWithFallback(dataforseo, (url, body) => ({
+    status: 200,
+    json: async () => ({ status_code: 20000, tasks: [{ status_code: 20000, result: [
+      { goto: body[0].goto_urls[0], url: "https://www.google.com/sorry/index?continue=x" }
+    ] }] })
+  }));
+  const result = await send({ type: "resolve-goto", url: "https://www.google.com/goto?url=a" });
+  assert.equal(result.ok, false);
+});
+
+test("a rejected DataForSEO login is shown in the toolbar tooltip", async () => {
+  const send = googleFailsWithFallback(dataforseo, () => ({ status: 401, json: async () => ({ status_code: 40100 }) }));
+  await send({ type: "resolve-goto", url: "https://www.google.com/goto?url=a" });
+  assert.match(send.action.title, /DataForSEO rejected the login/);
 });

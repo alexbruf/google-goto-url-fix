@@ -13,10 +13,14 @@
   ]);
 
   globalThis.chrome = {
-    storage: { local: { get: async () => ({ enabled: true, prefetchNearby: location.search.includes('prefetch=1') || location.search.includes('hold=1') }) } },
+    storage: { local: { get: async () => ({ enabled: true, prefetchNearby: location.search.includes('prefetch=1') || location.search.includes('hold=1') || location.search.includes('fallback=1') }) } },
     runtime: {
       onMessage: { addListener(listener) { runtimeListeners.push(listener); } },
       async sendMessage(message) {
+        if (message.type === 'resolve-goto-batch') {
+          messages.push(message);
+          return { ok: true, results: Object.fromEntries(message.urls.map(url => [url, `https://example.net/batch-${new URL(url).searchParams.get('url')}`])) };
+        }
         if (message.type === 'promote-goto') {
           messages.push(message);
           return { ok: true };
@@ -30,7 +34,8 @@
         const log = document.querySelector("#log");
         if (requested.length === 1) log.textContent = "";
         log.textContent += `${JSON.stringify({ ...message, simulatedResult: url ?? null }, null, 2)}\n\n`;
-        return url ? { ok: true, url } : { ok: false, error: "Unknown fixture URL" };
+        const via = location.search.includes('fallback=1') ? { via: 'fallback' } : {};
+        return url ? { ok: true, url, ...via } : { ok: false, error: "Unknown fixture URL" };
       }
     }
   };
@@ -54,6 +59,7 @@
         citation: document.querySelector("#goto-citation").href,
         normal: document.querySelector("#normal-link").href,
         dynamic: document.querySelector("#dynamic-link")?.href ?? null,
+        second: document.querySelector("#goto-second").href,
         requests: requested.length,
         messages: [...messages]
       };

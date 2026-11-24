@@ -15,7 +15,21 @@ the page with its destination. Link processing occurs on
 the user's device. The developer never receives the search query, browsing
 activity, redirect URL, cookies, or destination URL.
 
-The extension stores the toolbar and prefetch preferences, a temporary pause time,
+## Optional fallback service
+
+The extension has an optional fallback that is off by default. If the user chooses
+DataForSEO or cloro in the extension settings and enters their own account details
+for that service, Google `/goto` links that Google does not resolve are sent to the
+chosen service, which returns their destinations. Only those Google link addresses
+are sent, along with the user's own credentials for that service. Search queries,
+cookies and page contents are not sent. The service's own privacy policy applies to
+those requests. Choosing "None" in the settings stops all requests to the service.
+The developer never receives this data.
+
+## Data stored on the device
+
+The extension stores the toolbar and prefetch preferences, the optional fallback
+service choice and credentials, a temporary pause time,
 and the latest lookup error on the user's device. Removing the extension deletes
 this data through the browser's normal extension-data removal process.
 

@@ -192,6 +192,28 @@ const googleHostnames = new Set(["google.ad","google.ae","google.al","google.am"
     }, PREFETCH_DELAY_MS);
   }
 
+  // Google is failing and the configured fallback service works: send the page's other
+  // unresolved links in one message so the service gets a single batch request.
+  const BATCH_LIMIT = 100;
+  const batchRequested = new Set();
+  function requestBatch() {
+    if (!enabled || !prefetchEnabled) return;
+    const urls = [...new Set([...document.querySelectorAll("a[href]")]
+      .filter(anchor => isGotoLink(anchor) && !destinationOnAnchor(anchor))
+      .map(anchor => anchor.href))]
+      .filter(url => !cache.has(url) && !queued.has(url) && !batchRequested.has(url))
+      .slice(0, BATCH_LIMIT);
+    if (!urls.length) return;
+    urls.forEach(url => batchRequested.add(url));
+    api.runtime.sendMessage({ type: "resolve-goto-batch", urls })
+      .then((response) => {
+        if (!response?.ok) return;
+        for (const [url, destination] of Object.entries(response.results ?? {})) cache.set(url, destination);
+        scan();
+      })
+      .catch(() => {});
+  }
+
   function drain() {
     while (enabled && active < 2 && queue.length) {
       const urgentIndex = queue.findIndex(item => !item.prefetch);
@@ -229,6 +251,7 @@ const googleHostnames = new Set(["google.ad","google.ae","google.al","google.am"
           if (!result?.ok || !result.url) return;
           cache.set(item.original, result.url);
           scan();
+          if (result.via === "fallback") requestBatch();
         })
         .catch(() => {})
         .finally(() => {

@@ -44,4 +44,17 @@ agent-browser --session "$session" eval '
     fixture.releasePrefetch();
   })()
 ' >/dev/null
+agent-browser --session "$session" open "file://$task_root/test/fixture.html?fallback=1" >/dev/null
+agent-browser --session "$session" wait 3000 >/dev/null
+agent-browser --session "$session" eval '
+  (() => {
+    const state = fixture.snapshot();
+    const batches = state.messages.filter(message => message.type === "resolve-goto-batch");
+    if (batches.length !== 1) throw new Error(`expected one batch after a fallback result, saw ${batches.length}`);
+    const lookups = state.messages.filter(message => message.type === "resolve-goto").map(message => message.url);
+    if (batches[0].urls.some(url => lookups.includes(url))) throw new Error("batch repeated a link already looked up");
+    if (!state.third.startsWith("https://example.net/batch-") && !state.fourth.startsWith("https://example.net/batch-")) throw new Error(`batch results were not applied: ${JSON.stringify(state)}`);
+    return true;
+  })()
+' >/dev/null
 echo "Nearby prefetch fixture passed"
