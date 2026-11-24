@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.0.7 — 2026-11-24
 
 - Firefox: shows a link's real address in the status bar as soon as it is rewritten
   while hovered, without moving focus out of a text field (#15). Based on #13 by pitr223.
