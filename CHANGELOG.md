@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Stops rewriting a link after three rewrites in ten seconds if the page keeps
+  putting its `/goto` address back, so the extension can no longer trade changes
+  with the page indefinitely and use high CPU (#12).
+- Adds a CPU stress fixture, `npm run test:stress`.
+
 ## 1.0.4 — 2026-10-31
 
 - Decodes redirect URLs with plain string replacement instead of assigning

@@ -5,7 +5,12 @@ const googleHostnames = new Set(["google.ad","google.ae","google.al","google.am"
   const PREFETCH_DELAY_MS = 1000;
   const PREFETCH_GAP_MS = 1500;
   const PREFETCH_LIMIT = 4;
+  // If the page keeps putting a link back to /goto, stop rewriting it instead of
+  // trading changes with the page indefinitely (issue #12).
+  const REWRITE_LIMIT = 3;
+  const REWRITE_WINDOW_MS = 10000;
   const originals = new Map();
+  const rewrites = new WeakMap();
   const cache = new Map();
   const queued = new Set();
   const queue = [];
@@ -73,6 +78,19 @@ const googleHostnames = new Set(["google.ad","google.ae","google.al","google.am"
     return candidates.size === 1 ? [...candidates][0] : null;
   }
 
+  function rewriteAllowed(anchor) {
+    const now = Date.now();
+    const recent = (rewrites.get(anchor) ?? []).filter(time => now - time < REWRITE_WINDOW_MS);
+    rewrites.set(anchor, recent);
+    return recent.length < REWRITE_LIMIT;
+  }
+
+  function rewrite(anchor, url) {
+    if (!rewriteAllowed(anchor)) return;
+    rewrites.get(anchor).push(Date.now());
+    anchor.href = url;
+  }
+
   function enqueue(anchor, prefetch = false) {
     if (!enabled || !anchor.isConnected || !isGotoLink(anchor)) return;
     const original = anchor.href;
@@ -81,13 +99,13 @@ const googleHostnames = new Set(["google.ad","google.ae","google.al","google.am"
     const onPage = destinationOnAnchor(anchor);
     if (onPage) {
       cache.set(original, onPage);
-      anchor.href = onPage;
+      rewrite(anchor, onPage);
       return;
     }
 
     const cached = cache.get(original);
     if (cached) {
-      anchor.href = cached;
+      rewrite(anchor, cached);
       return;
     }
     if (queued.has(original)) {

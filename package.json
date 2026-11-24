@@ -12,6 +12,7 @@
     "test": "node --test test/*.test.js",
     "test:browser": "sh scripts/test-browser-fixture.sh",
     "test:prefetch": "sh scripts/test-prefetch-fixture.sh",
+    "test:stress": "sh scripts/test-stress-fixture.sh",
     "test:e2e": "node test/extension-e2e.js",
     "test:serve": "node scripts/serve-fixture.js",
     "check": "npm run build && npm test"
