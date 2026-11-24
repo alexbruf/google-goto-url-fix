@@ -151,7 +151,7 @@ async function lookupsPaused() {
 const observesRedirects = api.runtime.getManifest().permissions?.includes("webRequest") !== false;
 const pendingRedirects = new Map();
 const gotoRequestFilter = {
-  urls: [...googleHostnames].flatMap((host) => ["https://" + host + "/goto*", "https://www." + host + "/goto*", "https://" + host + "/url*", "https://www." + host + "/url*"])
+  urls: [...googleHostnames].flatMap((host) => ["https://www." + host + "/goto*", "https://www." + host + "/url*"])
 };
 
 const extensionOrigin = api.runtime.getURL("").replace(/\/$/, "");
