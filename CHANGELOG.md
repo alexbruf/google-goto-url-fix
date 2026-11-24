@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.0.6 — 2026-11-24
 
 - Stops rewriting a link after three rewrites in ten seconds if the page keeps
   putting its `/goto` address back, so the extension can no longer trade changes
@@ -9,6 +9,12 @@
 - Adds an optional fallback service, off by default. When Google won't resolve a
   link, the extension can ask DataForSEO or cloro using the user's own account.
   DataForSEO lookups are sent together as one batch request.
+
+## 1.0.5 — 2026-11-01
+
+- Fixes Safari with nonpersistent background processes by removing unsupported
+  webRequest listeners. Safari resolves destinations from page data and readable
+  Google responses; some redirects may stay unresolved where Safari hides them (#10).
 
 ## 1.0.4 — 2026-10-31
 
